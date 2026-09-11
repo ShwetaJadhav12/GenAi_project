@@ -1,0 +1,55 @@
+Transaction Date,Product Name,Category,Units Sold,Selling Price,Revenue,Transaction Type
+2026-05-23,Men's Cotton T-Shirt,Men,3,350,1050,sale
+2026-05-23,Women's Kurti,Women,2,650,1300,sale
+2026-05-23,Sports Shorts,Sports,4,299,1196,sale
+2026-05-24,Denim Jeans,Men,1,1200,1200,sale
+2026-05-24,Women's Kurti,Women,3,650,1950,sale
+2026-05-24,Men's Formal Shirt,Men,2,800,1600,sale
+2026-05-25,Saree,Women,1,1800,1800,sale
+2026-05-25,Men's Cotton T-Shirt,Men,5,350,1750,sale
+2026-05-25,Kids Frock,Kids,2,400,800,sale
+2026-05-26,Winter Jacket,Seasonal,1,2500,2500,sale
+2026-05-26,Sports Shorts,Sports,6,299,1794,sale
+2026-05-26,Denim Jeans,Men,2,1200,2400,sale
+2026-05-27,Women's Kurti,Women,4,650,2600,sale
+2026-05-27,Men's Cotton T-Shirt,Men,3,350,1050,sale
+2026-05-27,Men's Formal Shirt,Men,1,800,800,sale
+2026-05-28,Saree,Women,2,1800,3600,sale
+2026-05-28,Kids Frock,Kids,3,400,1200,sale
+2026-05-28,Sports Shorts,Sports,5,299,1495,sale
+2026-05-29,Denim Jeans,Men,3,1200,3600,sale
+2026-05-29,Men's Cotton T-Shirt,Men,7,350,2450,sale
+2026-05-29,Winter Jacket,Seasonal,1,2500,2500,sale
+2026-05-30,Women's Kurti,Women,5,650,3250,sale
+2026-05-30,Men's Formal Shirt,Men,2,800,1600,sale
+2026-05-30,Saree,Women,1,1800,1800,sale
+2026-06-01,Men's Cotton T-Shirt,Men,20,180,3600,purchase
+2026-06-01,Women's Kurti,Women,15,350,5250,purchase
+2026-06-01,Denim Jeans,Men,10,700,7000,purchase
+2026-06-02,Men's Cotton T-Shirt,Men,4,350,1400,sale
+2026-06-02,Kids Frock,Kids,2,400,800,sale
+2026-06-02,Sports Shorts,Sports,3,299,897,sale
+2026-06-03,Women's Kurti,Women,3,650,1950,sale
+2026-06-03,Denim Jeans,Men,2,1200,2400,sale
+2026-06-03,Men's Formal Shirt,Men,3,800,2400,sale
+2026-06-04,Saree,Women,1,1800,1800,sale
+2026-06-04,Men's Cotton T-Shirt,Men,6,350,2100,sale
+2026-06-04,Winter Jacket,Seasonal,2,2500,5000,sale
+2026-06-05,Sports Shorts,Sports,8,299,2392,sale
+2026-06-05,Women's Kurti,Women,4,650,2600,sale
+2026-06-05,Kids Frock,Kids,1,400,400,sale
+2026-06-06,Denim Jeans,Men,3,1200,3600,sale
+2026-06-06,Men's Formal Shirt,Men,2,800,1600,sale
+2026-06-06,Men's Cotton T-Shirt,Men,5,350,1750,sale
+2026-06-07,Saree,Women,2,1800,3600,sale
+2026-06-07,Women's Kurti,Women,6,650,3900,sale
+2026-06-07,Sports Shorts,Sports,4,299,1196,sale
+2026-06-08,Men's Cotton T-Shirt,Men,8,350,2800,sale
+2026-06-08,Denim Jeans,Men,1,1200,1200,sale
+2026-06-08,Kids Frock,Kids,3,400,1200,sale
+2026-06-09,Men's Formal Shirt,Men,4,800,3200,sale
+2026-06-09,Winter Jacket,Seasonal,1,2500,2500,sale
+2026-06-09,Women's Kurti,Women,3,650,1950,sale
+2026-06-10,Saree,Women,1,1800,1800,sale
+2026-06-10,Sports Shorts,Sports,7,299,2093,sale
+2026-06-10,Men's Cotton T-Shirt,Men,6,350,2100,sale

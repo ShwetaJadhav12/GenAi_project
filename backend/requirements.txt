@@ -1,0 +1,42 @@
+# =========================================================
+#  AI Business Assistant — Python Dependencies
+#  Tested with Python 3.14  (also works on 3.11, 3.12, 3.13)
+#  Install: pip install -r requirements.txt
+# =========================================================
+
+# ── Web framework ──
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+python-multipart==0.0.32
+
+# ── Database ──
+sqlalchemy==2.0.52
+aiosqlite==0.22.1
+
+# ── Data processing ──
+# pandas 3.x is installed on Python 3.14 — compatible
+pandas==3.0.5
+numpy==2.5.2
+openpyxl==3.1.5          # .xlsx read/write
+xlrd==2.0.2              # .xls (legacy Excel) read
+
+# ── Machine learning ──
+scikit-learn==1.9.0
+
+# ── OCR ──
+pytesseract==0.3.13
+Pillow==12.3.0
+
+# ── LLM — Google Gemini (recommended, free tier available) ──
+# google-genai is the current unified Google AI SDK (replaces google-generativeai)
+google-genai==2.19.0
+
+# ── LLM — OpenAI (alternative) ──
+# openai 3.x is the latest official OpenAI Python SDK on PyPI
+openai==3.2.0
+
+# ── Environment / config ──
+python-dotenv==1.2.3
+
+# ── Utilities ──
+python-dateutil==2.9.0.post0

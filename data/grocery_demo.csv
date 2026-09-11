@@ -1,0 +1,63 @@
+Transaction Date,Product Name,Category,Units Sold,Selling Price,Revenue,Transaction Type
+2026-05-23,Basmati Rice,Grains,3,60,180,sale
+2026-05-23,Milk,Dairy,2,55,110,sale
+2026-05-23,Maggi Noodles,Packaged Food,5,15,75,sale
+2026-05-23,Sugar,Staples,2,42,84,sale
+2026-05-24,Toor Dal,Pulses,1.5,120,180,sale
+2026-05-24,Sunflower Oil,Oils,1,140,140,sale
+2026-05-24,Basmati Rice,Grains,2,60,120,sale
+2026-05-24,Tea Leaves,Beverages,1,180,180,sale
+2026-05-25,Whole Wheat Flour,Grains,3,45,135,sale
+2026-05-25,Amul Butter,Dairy,2,55,110,sale
+2026-05-25,Milk,Dairy,4,55,220,sale
+2026-05-25,Maggi Noodles,Packaged Food,8,15,120,sale
+2026-05-26,Basmati Rice,Grains,5,60,300,sale
+2026-05-26,Sugar,Staples,3,42,126,sale
+2026-05-26,Salt,Staples,2,20,40,sale
+2026-05-26,Toor Dal,Pulses,2,120,240,sale
+2026-05-27,Sunflower Oil,Oils,2,140,280,sale
+2026-05-27,Milk,Dairy,3,55,165,sale
+2026-05-27,Tea Leaves,Beverages,2,180,360,sale
+2026-05-27,Amul Butter,Dairy,1,55,55,sale
+2026-05-28,Basmati Rice,Grains,4,60,240,sale
+2026-05-28,Whole Wheat Flour,Grains,2,45,90,sale
+2026-05-28,Maggi Noodles,Packaged Food,10,15,150,sale
+2026-05-28,Sugar,Staples,1,42,42,sale
+2026-05-29,Toor Dal,Pulses,3,120,360,sale
+2026-05-29,Salt,Staples,4,20,80,sale
+2026-05-29,Milk,Dairy,5,55,275,sale
+2026-05-29,Tea Leaves,Beverages,1,180,180,sale
+2026-05-30,Basmati Rice,Grains,6,60,360,sale
+2026-05-30,Sunflower Oil,Oils,1,140,140,sale
+2026-05-30,Amul Butter,Dairy,3,55,165,sale
+2026-05-30,Maggi Noodles,Packaged Food,6,15,90,sale
+2026-06-01,Basmati Rice,Grains,50,42,2100,purchase
+2026-06-01,Milk,Dairy,40,42,1680,purchase
+2026-06-01,Toor Dal,Pulses,20,90,1800,purchase
+2026-06-02,Basmati Rice,Grains,3,60,180,sale
+2026-06-02,Sugar,Staples,2,42,84,sale
+2026-06-02,Milk,Dairy,3,55,165,sale
+2026-06-03,Whole Wheat Flour,Grains,4,45,180,sale
+2026-06-03,Maggi Noodles,Packaged Food,7,15,105,sale
+2026-06-03,Toor Dal,Pulses,2,120,240,sale
+2026-06-04,Sunflower Oil,Oils,2,140,280,sale
+2026-06-04,Salt,Staples,3,20,60,sale
+2026-06-04,Tea Leaves,Beverages,1,180,180,sale
+2026-06-05,Basmati Rice,Grains,5,60,300,sale
+2026-06-05,Milk,Dairy,4,55,220,sale
+2026-06-05,Amul Butter,Dairy,2,55,110,sale
+2026-06-06,Sugar,Staples,4,42,168,sale
+2026-06-06,Maggi Noodles,Packaged Food,12,15,180,sale
+2026-06-06,Toor Dal,Pulses,1.5,120,180,sale
+2026-06-07,Basmati Rice,Grains,7,60,420,sale
+2026-06-07,Whole Wheat Flour,Grains,3,45,135,sale
+2026-06-07,Milk,Dairy,6,55,330,sale
+2026-06-08,Tea Leaves,Beverages,2,180,360,sale
+2026-06-08,Sunflower Oil,Oils,1,140,140,sale
+2026-06-08,Salt,Staples,2,20,40,sale
+2026-06-09,Basmati Rice,Grains,4,60,240,sale
+2026-06-09,Amul Butter,Dairy,1,55,55,sale
+2026-06-09,Maggi Noodles,Packaged Food,9,15,135,sale
+2026-06-10,Sugar,Staples,3,42,126,sale
+2026-06-10,Toor Dal,Pulses,2,120,240,sale
+2026-06-10,Milk,Dairy,5,55,275,sale

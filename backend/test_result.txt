@@ -1,0 +1,11 @@
+dotenv loaded
+DB connected
+Demo mode: False
+Business: My Grocery Store
+Revenue: 75867.9
+Calling generate_insights...
+INSIGHTS OK - summary: Over the last 30 days, My Grocery Store generated total revenue of 75867.9 with an estimated profit 
+Action items: 4
+Calling chat_with_data...
+CHAT OK - reply: Your top selling product by revenue is Tea Leaves, which generated 18,882.0 in total revenue from 10
+ALL TESTS PASSED
