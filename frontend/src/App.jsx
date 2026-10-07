@@ -20,6 +20,7 @@ import WhatIf       from './pages/WhatIf'
 import AskAI        from './pages/AskAI'
 import Reports      from './pages/Reports'
 import Settings     from './pages/Settings'
+import SocialGenerator from './pages/SocialGenerator'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -56,6 +57,7 @@ function AppRoutes() {
         <Route path="forecast"         element={<Forecast />} />
         <Route path="whatif"           element={<WhatIf />} />
         <Route path="ask-ai"           element={<AskAI />} />
+        <Route path="social-generator" element={<SocialGenerator />} />
         <Route path="reports"          element={<Reports />} />
         <Route path="settings"         element={<Settings />} />
       </Route>

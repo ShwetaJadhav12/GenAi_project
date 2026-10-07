@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FlaskConical, TrendingUp, TrendingDown, Info, AlertCircle } from 'lucide-react'
+import { FlaskConical, TrendingUp, TrendingDown, Info, AlertCircle, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react'
 import api from '../services/api'
 import { useBusiness } from '../context/BusinessContext'
 import NoBusiness from '../components/NoBusiness'
@@ -30,6 +30,7 @@ export default function WhatIf() {
         period_days:   period,
       })
       setResult(r.data)
+      toast.success('Simulation computed!')
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Simulation failed')
     } finally {
@@ -38,80 +39,95 @@ export default function WhatIf() {
   }
 
   if (!activeBusiness) return <NoBusiness />
+  const currency = activeBusiness.currency || 'INR'
 
   const isPositive = result && result.estimated_change >= 0
-  const label = scenarioType === 'price_change' ? 'Revenue Impact' : 'Expense Impact'
 
   const SCENARIOS = [
     {
       value: 'price_change',
-      title: 'Price Change',
-      desc: 'Simulate changing a product price and see estimated revenue impact.',
-      currentLabel: 'Current Average Revenue (last period)',
-      newLabel: 'Simulated New Revenue',
-      hint: 'Enter your current period revenue and a new value to simulate.',
+      title: 'Price / Revenue Shift',
+      desc: 'Simulate raising or lowering catalog prices or average order receipts.',
+      currentLabel: 'Baseline Revenue in Period',
+      newLabel: 'Projected Target Revenue',
+      hint: 'Simulates the top-line margin impact if average ticket or pricing adjusts.',
     },
     {
       value: 'expense_change',
-      title: 'Expense Change',
-      desc: 'Simulate reducing or increasing a specific expense.',
-      currentLabel: 'Current Expense Amount',
-      newLabel: 'New Expense Amount',
-      hint: 'Enter current expense and a new value to see the net impact.',
+      title: 'Operating Expense Shift',
+      desc: 'Simulate rent hikes, supplier discount renegotiations, or marketing ad cuts.',
+      currentLabel: 'Baseline Overhead in Period',
+      newLabel: 'Target Overhead Budget',
+      hint: 'Simulates the bottom-line net profit variation if operating costs change.',
     },
   ]
   const activeScenario = SCENARIOS.find(s => s.value === scenarioType)
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl mx-auto space-y-6">
       <PageHeader
-        title="What-If Simulator"
-        subtitle="Estimate the impact of business decisions before making them."
+        title="What-If Decision Simulator"
+        subtitle={`Model price changes and overhead variations before committing resources for ${activeBusiness.business_name}.`}
+        badge="Scenario Modeling"
       />
 
-      {/* Disclaimer */}
-      <div className="mb-5 p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2 text-sm text-amber-700">
-        <AlertCircle size={16} className="shrink-0 mt-0.5" />
-        Results are <strong>estimates</strong> based on historical averages.
-        They do not guarantee actual outcomes and should be used for planning only.
+      <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl flex items-start gap-3 text-xs text-amber-800 shadow-2xs">
+        <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+        <div>
+          <p className="font-bold mb-0.5">Predictive Planning Model</p>
+          <p className="text-amber-700 leading-relaxed">
+            Outputs are heuristic estimates evaluated against historical ledger velocity. Use this tool for hypothesis testing and risk bounds estimation.
+          </p>
+        </div>
       </div>
 
       <form onSubmit={handleRun} className="space-y-5">
-        {/* Scenario type */}
+        {/* Scenario type selector cards */}
         <div className="card">
-          <label className="label mb-2">Scenario Type</label>
-          <div className="grid grid-cols-2 gap-3">
+          <label className="label mb-2.5">Select Decision Model</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {SCENARIOS.map(s => (
               <button
                 key={s.value}
                 type="button"
                 onClick={() => { setScenarioType(s.value); setResult(null) }}
-                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                className={`p-4 rounded-xl border text-left transition-all ${
                   scenarioType === s.value
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-primary-600 bg-primary-50/60 ring-2 ring-primary-500/20 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
                 }`}
               >
-                <FlaskConical size={18} className={scenarioType === s.value ? 'text-primary-600' : 'text-gray-400'} />
-                <p className={`font-semibold mt-2 text-sm ${scenarioType === s.value ? 'text-primary-700' : 'text-gray-700'}`}>
-                  {s.title}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5 leading-tight">{s.desc}</p>
+                <div className="flex items-center justify-between">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    scenarioType === s.value ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    <FlaskConical size={16} />
+                  </div>
+                  {scenarioType === s.value && (
+                    <span className="text-[10px] font-bold text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">Active</span>
+                  )}
+                </div>
+                <p className="font-bold mt-2.5 text-sm text-slate-900">{s.title}</p>
+                <p className="text-xs text-slate-500 mt-1 leading-snug">{s.desc}</p>
               </button>
             ))}
           </div>
         </div>
 
+        {/* Inputs card */}
         <div className="card space-y-4">
-          <div className="flex items-start gap-2 text-sm text-blue-600 bg-blue-50 p-2.5 rounded-lg">
-            <Info size={15} className="shrink-0 mt-0.5" />{activeScenario.hint}
+          <div className="flex items-center gap-2 text-xs text-primary-700 bg-primary-50/80 p-3 rounded-xl border border-primary-100">
+            <Info size={15} className="shrink-0" />
+            <span>{activeScenario.hint}</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="label">Current Value (₹)</label>
+              <label className="label">{activeScenario.currentLabel} (₹)</label>
               <input
-                type="number" step="0.01" className="input"
+                type="number"
+                step="any"
+                className="input font-semibold"
                 placeholder="e.g. 50000"
                 value={currentVal}
                 onChange={e => setCurrentVal(e.target.value)}
@@ -119,10 +135,12 @@ export default function WhatIf() {
               />
             </div>
             <div>
-              <label className="label">New Value (₹)</label>
+              <label className="label">{activeScenario.newLabel} (₹)</label>
               <input
-                type="number" step="0.01" className="input"
-                placeholder="e.g. 55000"
+                type="number"
+                step="any"
+                className="input font-semibold"
+                placeholder="e.g. 58000"
                 value={newVal}
                 onChange={e => setNewVal(e.target.value)}
                 required
@@ -130,59 +148,80 @@ export default function WhatIf() {
             </div>
           </div>
 
-          <div>
-            <label className="label">Analysis Period</label>
-            <select className="input w-auto" value={period} onChange={e => setPeriod(Number(e.target.value))}>
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-            </select>
-          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+            <div className="flex items-center gap-2">
+              <label className="label mb-0">Analysis Horizon:</label>
+              <select
+                className="input w-auto text-xs py-1.5"
+                value={period}
+                onChange={e => setPeriod(Number(e.target.value))}
+              >
+                <option value={7}>Last 7 days</option>
+                <option value={30}>Last 30 days</option>
+                <option value={90}>Last 90 days</option>
+              </select>
+            </div>
 
-          <button type="submit" disabled={loading} className="btn-primary w-full py-2.5">
-            {loading ? 'Simulating…' : 'Run Simulation'}
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full sm:w-auto px-6 py-2.5 shadow-md flex items-center justify-center gap-2"
+            >
+              <Sparkles size={15} />
+              <span>{loading ? 'Evaluating Scenario…' : 'Simulate Decision'}</span>
+            </button>
+          </div>
         </div>
       </form>
 
-      {/* Results */}
+      {/* Results card */}
       {result && (
-        <div className="mt-6 space-y-4">
-          <div className="card border-2 border-primary-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Estimated Scenario</p>
-            <p className="text-sm text-gray-600 mb-4">{result.scenario_description}</p>
+        <div className="card border border-primary-200/90 shadow-card-hover space-y-5 bg-gradient-to-b from-white to-primary-50/20">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
+                Simulation Output
+              </span>
+              <h3 className="text-base font-bold text-slate-900 mt-1">{result.scenario_description}</h3>
+            </div>
+          </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-400 mb-1">Current</p>
-                <p className="font-bold text-gray-800">₹{result.estimated_current.toLocaleString('en-IN')}</p>
-              </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-400 mb-1">New (Simulated)</p>
-                <p className="font-bold text-gray-800">₹{result.estimated_new.toLocaleString('en-IN')}</p>
-              </div>
-              <div className={`text-center p-3 rounded-lg ${isPositive ? 'bg-green-50' : 'bg-red-50'}`}>
-                <p className="text-xs text-gray-400 mb-1">Change</p>
-                <div className="flex items-center justify-center gap-1">
-                  {isPositive
-                    ? <TrendingUp size={14} className="text-green-600" />
-                    : <TrendingDown size={14} className="text-red-600" />
-                  }
-                  <p className={`font-bold ${isPositive ? 'text-green-700' : 'text-red-700'}`}>
-                    {isPositive ? '+' : ''}{result.estimated_change_pct.toFixed(1)}%
-                  </p>
-                </div>
-                <p className={`text-xs mt-0.5 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                  {isPositive ? '+' : ''}₹{result.estimated_change.toLocaleString('en-IN')}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl text-center">
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Baseline Input</p>
+              <p className="text-lg font-bold text-slate-800 mt-1">₹{Number(result.estimated_current).toLocaleString('en-IN')}</p>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl text-center">
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Simulated Target</p>
+              <p className="text-lg font-bold text-slate-800 mt-1">₹{Number(result.estimated_new).toLocaleString('en-IN')}</p>
+            </div>
+
+            <div className={`p-3.5 rounded-xl border text-center ${
+              isPositive ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+            }`}>
+              <p className="text-[10px] font-semibold uppercase tracking-wider opacity-75">Estimated Variance</p>
+              <div className="flex items-center justify-center gap-1 mt-1">
+                {isPositive ? <TrendingUp size={16} className="text-emerald-600" /> : <TrendingDown size={16} className="text-rose-600" />}
+                <p className="text-lg font-black">
+                  {isPositive ? '+' : ''}{result.estimated_change_pct?.toFixed(1)}%
                 </p>
               </div>
+              <p className="text-xs font-bold mt-0.5">
+                {isPositive ? '+' : ''}₹{Math.round(result.estimated_change).toLocaleString('en-IN')}
+              </p>
             </div>
+          </div>
 
-            {/* AI Explanation */}
-            <div className="bg-primary-50 rounded-lg p-3 border border-primary-100">
-              <p className="text-xs font-semibold text-primary-700 mb-1.5">AI Explanation</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{result.ai_explanation}</p>
+          {/* AI Explanation */}
+          <div className="bg-white rounded-xl p-4 border border-primary-100 shadow-2xs">
+            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-primary-700">
+              <Sparkles size={14} className="text-primary-600" />
+              <span>AI Operational Assessment</span>
             </div>
+            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              {result.ai_explanation}
+            </p>
           </div>
         </div>
       )}

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Business, User
-from schemas import ChatMessage, WhatIfRequest
+from schemas import ChatMessage, WhatIfRequest, SocialContentRequest, ImageGenerationRequest, VideoGenerationRequest
 from routes.auth import get_current_user_dep
 from services import analytics as svc_analytics
 from services import ai_service as svc_ai
@@ -131,3 +131,43 @@ def action_plan(
         "action_plan": insights.get("action_plan", []),
         "generated_for": biz.business_name,
     }
+
+
+@router.post("/generate-social")
+def generate_social(
+    business_id: int,
+    body: SocialContentRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_dep),
+):
+    biz = _get_biz(business_id, current_user, db)
+    context = svc_analytics.build_llm_context(db, business_id, 30)
+    top_products = context.get("top_products", [])
+    result = svc_ai.generate_social_content(body.model_dump(), biz.business_name, biz.business_type, top_products)
+    return result
+
+
+@router.post("/generate-image")
+def generate_image(
+    business_id: int,
+    body: ImageGenerationRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_dep),
+):
+    biz = _get_biz(business_id, current_user, db)
+    result = svc_ai.generate_marketing_image(body.model_dump(), biz.business_name, biz.business_type)
+    return result
+
+
+@router.post("/generate-video")
+def generate_video(
+    business_id: int,
+    body: VideoGenerationRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_dep),
+):
+    biz = _get_biz(business_id, current_user, db)
+    result = svc_ai.generate_marketing_video(body.model_dump(), biz.business_name, biz.business_type)
+    return result
+
+
