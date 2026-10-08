@@ -21,6 +21,7 @@ import AskAI        from './pages/AskAI'
 import Reports      from './pages/Reports'
 import Settings     from './pages/Settings'
 import SocialGenerator from './pages/SocialGenerator'
+import CampaignPlanner from './pages/CampaignPlanner'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -54,10 +55,11 @@ function AppRoutes() {
         <Route path="products"         element={<Products />} />
         <Route path="expenses"         element={<Expenses />} />
         <Route path="ai-insights"      element={<AIInsights />} />
+        <Route path="campaign-planner" element={<CampaignPlanner />} />
+        <Route path="social-generator" element={<SocialGenerator />} />
         <Route path="forecast"         element={<Forecast />} />
         <Route path="whatif"           element={<WhatIf />} />
         <Route path="ask-ai"           element={<AskAI />} />
-        <Route path="social-generator" element={<SocialGenerator />} />
         <Route path="reports"          element={<Reports />} />
         <Route path="settings"         element={<Settings />} />
       </Route>

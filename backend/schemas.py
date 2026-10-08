@@ -268,6 +268,22 @@ class ImportRequest(BaseModel):
     session_id: str               # ties back to the uploaded preview
 
 
+# ─────────────────── Digital Marketing Campaign Planner ───────────────────
+
+class CampaignPlannerRequest(BaseModel):
+    business_id: int
+    campaign_objective: str = "increase_sales"  # increase_sales | brand_awareness | lead_generation | product_launch | clearance_inventory
+    duration_days: int = 14                     # 7 | 14 | 21 | 30
+    total_budget: float = 10000.0               # within currency
+    target_location: Optional[str] = None
+    target_audience_notes: Optional[str] = None
+    preferred_platforms: Optional[List[str]] = None  # instagram, facebook, whatsapp, youtube, google_ads, email
+    posting_capacity: Optional[str] = "moderate"     # low | moderate | high
+    selected_product_ids: Optional[List[int]] = None
+    discount_offer_text: Optional[str] = None
+    additional_goals: Optional[str] = None
+
+
 # ─────────────────── Social Media Content Generator ───────────────────
 
 class SocialContentRequest(BaseModel):

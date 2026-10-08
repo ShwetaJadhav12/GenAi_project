@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import {
   Sparkles, Copy, Check, Share2, Instagram, Facebook,
   MessageCircle, Linkedin, Target, TrendingUp, Flame,
-  Clock, Megaphone, Tag, Send, RefreshCw, ArrowRight
+  Clock, Megaphone, Tag, Send, RefreshCw, ArrowRight, Calendar
 } from 'lucide-react'
 import api from '../services/api'
 import { useBusiness } from '../context/BusinessContext'
@@ -125,6 +125,32 @@ export default function SocialGenerator() {
         subtitle={`Generate platform-specific captions, viral hashtags, and promotional ad copy for ${activeBusiness.business_name}.`}
         badge="Multi-Channel AI"
       />
+
+      {/* Campaign Planner Callout Banner */}
+      <div className="card bg-gradient-to-r from-primary-900 via-indigo-900 to-slate-900 text-white p-4 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/10 text-primary-300 flex items-center justify-center shrink-0 border border-white/10">
+            <Calendar size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold text-white">Looking for a complete multi-day strategy?</h3>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-emerald-500 text-white uppercase">New Feature</span>
+            </div>
+            <p className="text-[11px] text-slate-300 mt-0.5">
+              Try the <strong className="text-white">AI Digital Marketing Campaign Planner</strong> to get a full content calendar, budget allocation, audience strategy, and validator report.
+            </p>
+          </div>
+        </div>
+        <a
+          href="/app/campaign-planner"
+          className="btn-primary text-xs py-2 px-3.5 bg-white text-slate-900 hover:bg-slate-100 font-bold shrink-0 flex items-center gap-1.5"
+        >
+          <span>Open Campaign Planner</span>
+          <ArrowRight size={14} />
+        </a>
+      </div>
+
 
       {/* Main 2-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

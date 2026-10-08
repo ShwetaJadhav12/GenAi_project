@@ -7,7 +7,8 @@ import {
 import {
   DollarSign, TrendingUp, TrendingDown, ShoppingCart,
   AlertTriangle, RefreshCw, Database, Sparkles, PlusCircle,
-  FileSpreadsheet, ArrowRight, ArrowUpRight, Flame, Layers, Share2
+  FileSpreadsheet, ArrowRight, ArrowUpRight, Flame, Layers, Share2,
+  Upload, ArrowLeftRight, Package, Receipt, Calendar, FlaskConical, MessageSquare
 } from 'lucide-react'
 import api from '../services/api'
 import { useBusiness } from '../context/BusinessContext'
@@ -169,72 +170,187 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Quick Action Shortcuts Bar ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <button
-          onClick={() => navigate('/app/data-input')}
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-primary-50/50 border border-slate-200/80 hover:border-primary-300 text-left transition-all shadow-xs group"
-        >
-          <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <PlusCircle size={16} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-800 leading-tight">Add Data</p>
-            <p className="text-[11px] text-slate-400 truncate">CSV, OCR &amp; Text</p>
-          </div>
-        </button>
+      {/* ── Feature Hub Navigation Cards ── */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Layers size={16} className="text-primary-600" />
+            <span>Application Features Hub</span>
+          </h2>
+          <span className="text-[11px] font-medium text-slate-400">10 Direct Feature Modules</span>
+        </div>
 
-        <button
-          onClick={() => navigate('/app/transactions')}
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-emerald-50/50 border border-slate-200/80 hover:border-emerald-300 text-left transition-all shadow-xs group"
-        >
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <DollarSign size={16} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          {/* 1. Data Input & OCR */}
+          <div
+            onClick={() => navigate('/app/data-input')}
+            className="card shadow-card p-3.5 hover:border-primary-400 hover:shadow-md cursor-pointer transition-all space-y-2 group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Upload size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700">Import</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-primary-600 transition-colors">Data Input &amp; OCR</h3>
+              <p className="text-[11px] text-slate-400 leading-snug mt-0.5">CSV/Excel upload, image scan &amp; text entry</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-800 leading-tight">Transactions</p>
-            <p className="text-[11px] text-slate-400 truncate">History &amp; Log</p>
-          </div>
-        </button>
 
-        <button
-          onClick={() => navigate('/app/social-generator')}
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-rose-50/50 border border-slate-200/80 hover:border-rose-300 text-left transition-all shadow-xs group"
-        >
-          <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Share2 size={16} />
+          {/* 2. Transactions */}
+          <div
+            onClick={() => navigate('/app/transactions')}
+            className="card shadow-card p-3.5 hover:border-emerald-400 hover:shadow-md cursor-pointer transition-all space-y-2 group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ArrowLeftRight size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700">Ledger</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Transactions Log</h3>
+              <p className="text-[11px] text-slate-400 leading-snug mt-0.5">Sales &amp; purchase ledger management</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-800 leading-tight">Social Studio</p>
-            <p className="text-[11px] text-slate-400 truncate">Posts &amp; Captions</p>
-          </div>
-        </button>
 
-        <button
-          onClick={() => navigate('/app/whatif')}
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-purple-50/50 border border-slate-200/80 hover:border-purple-300 text-left transition-all shadow-xs group"
-        >
-          <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <TrendingUp size={16} />
+          {/* 3. Products */}
+          <div
+            onClick={() => navigate('/app/products')}
+            className="card shadow-card p-3.5 hover:border-amber-400 hover:shadow-md cursor-pointer transition-all space-y-2 group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Package size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-50 text-amber-700">Stock</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-amber-600 transition-colors">Inventory &amp; Products</h3>
+              <p className="text-[11px] text-slate-400 leading-snug mt-0.5">Catalog prices &amp; reorder alerts</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-800 leading-tight">Simulator</p>
-            <p className="text-[11px] text-slate-400 truncate">Price &amp; Cost What-If</p>
-          </div>
-        </button>
 
-        <button
-          onClick={() => navigate('/app/ask-ai')}
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white text-left transition-all shadow-sm group"
-        >
-          <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Sparkles size={16} />
+          {/* 4. Expenses */}
+          <div
+            onClick={() => navigate('/app/expenses')}
+            className="card shadow-card p-3.5 hover:border-rose-400 hover:shadow-md cursor-pointer transition-all space-y-2 group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Receipt size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-50 text-rose-700">Expenses</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-rose-600 transition-colors">Expenses</h3>
+              <p className="text-[11px] text-slate-400 leading-snug mt-0.5">Track operational costs &amp; categories</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold leading-tight">Ask Assistant</p>
-            <p className="text-[11px] text-primary-100 truncate">Instant data answers</p>
+
+          {/* 5. Sales Forecast */}
+          <div
+            onClick={() => navigate('/app/forecast')}
+            className="card shadow-card p-3.5 hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all space-y-2 group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <TrendingUp size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700">Predictive</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Sales Forecast</h3>
+              <p className="text-[11px] text-slate-400 leading-snug mt-0.5">7-day ML revenue predictions</p>
+            </div>
           </div>
-        </button>
+
+          {/* 6. AI Insights */}
+          <div
+            onClick={() => navigate('/app/ai-insights')}
+            className="card shadow-card p-3.5 hover:border-purple-400 hover:shadow-md cursor-pointer transition-all space-y-2 group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Sparkles size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-50 text-purple-700">Analytics AI</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-purple-600 transition-colors">AI Insights</h3>
+              <p className="text-[11px] text-slate-400 leading-snug mt-0.5">Health checks &amp; action plan</p>
+            </div>
+          </div>
+
+          {/* 7. AI Campaign Planner */}
+          <div
+            onClick={() => navigate('/app/campaign-planner')}
+            className="card shadow-card p-3.5 hover:border-primary-500 hover:shadow-md cursor-pointer transition-all space-y-2 group border-primary-200/80 bg-gradient-to-br from-primary-50/40 to-white"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-primary-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+                <Calendar size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-primary-600 text-white uppercase">New</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-primary-700 transition-colors">AI Campaign Planner</h3>
+              <p className="text-[11px] text-slate-500 leading-snug mt-0.5">Multi-day marketing strategy &amp; calendar</p>
+            </div>
+          </div>
+
+          {/* 8. Social Content Studio */}
+          <div
+            onClick={() => navigate('/app/social-generator')}
+            className="card shadow-card p-3.5 hover:border-rose-400 hover:shadow-md cursor-pointer transition-all space-y-2 group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Share2 size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-50 text-rose-700">Studio</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-rose-600 transition-colors">Social Content Studio</h3>
+              <p className="text-[11px] text-slate-400 leading-snug mt-0.5">Multi-channel captions &amp; ad copy</p>
+            </div>
+          </div>
+
+          {/* 9. What-If Simulator */}
+          <div
+            onClick={() => navigate('/app/whatif')}
+            className="card shadow-card p-3.5 hover:border-teal-400 hover:shadow-md cursor-pointer transition-all space-y-2 group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <FlaskConical size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-teal-50 text-teal-700">Simulator</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 group-hover:text-teal-600 transition-colors">What-If Simulator</h3>
+              <p className="text-[11px] text-slate-400 leading-snug mt-0.5">Price &amp; expense scenario modeling</p>
+            </div>
+          </div>
+
+          {/* 10. Ask AI Assistant */}
+          <div
+            onClick={() => navigate('/app/ask-ai')}
+            className="card shadow-card p-3.5 hover:border-indigo-500 hover:shadow-md cursor-pointer transition-all space-y-2 group bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                <MessageSquare size={17} />
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white/20 text-indigo-200">AI Chat</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-white group-hover:text-primary-300 transition-colors">Ask AI Assistant</h3>
+              <p className="text-[11px] text-indigo-200 leading-snug mt-0.5">Interactive Q&amp;A on your real business data</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── No data state ── */}

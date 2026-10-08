@@ -950,3 +950,23 @@ def _demo_video_storyboard(req: dict, biz_name: str, biz_type: str) -> dict:
     }
 
 
+# ─────────────────── AI-Powered Digital Marketing Campaign Planner ───────────────────
+
+def generate_campaign_planner(db, business_id: int, req: dict, biz_name: str, biz_type: str, currency: str = "INR") -> dict:
+    """
+    Analyzes products, sales, inventory, profit margins, and campaign objectives
+    to generate a complete digital marketing campaign strategy, content calendar, and validator report.
+    """
+    from services import campaign_planner
+    data_analysis = campaign_planner.analyze_business_data_for_campaign(
+        db, business_id, req.get("selected_product_ids")
+    )
+    call_llm_fn = None if DEMO_MODE else _call_llm
+    result = campaign_planner.generate_campaign_plan(
+        req, biz_name, biz_type, currency, data_analysis, call_llm_fn
+    )
+    result["data_analysis_summary"] = data_analysis
+    return result
+
+
+
