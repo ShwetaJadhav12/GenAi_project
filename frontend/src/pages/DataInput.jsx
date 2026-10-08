@@ -1,12 +1,19 @@
 import React, { useState } from 'react'
-import { Upload, Image, MessageSquare, CheckCircle, XCircle, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  Upload, Image, MessageSquare, CheckCircle, XCircle,
+  AlertCircle, ChevronDown, ChevronUp, FileSpreadsheet,
+  Sparkles, CheckCircle2, ArrowRight, Scan, HelpCircle
+} from 'lucide-react'
 import api from '../services/api'
 import { useBusiness } from '../context/BusinessContext'
 import NoBusiness from '../components/NoBusiness'
 import PageHeader from '../components/PageHeader'
 import toast from 'react-hot-toast'
 
-const STANDARD_FIELDS = ['date','product','category','quantity','unit_price','total_amount','transaction_type','expense_category','description','(skip)']
+const STANDARD_FIELDS = [
+  'date', 'product', 'category', 'quantity', 'unit_price',
+  'total_amount', 'transaction_type', 'expense_category', 'description', '(skip)'
+]
 
 // ─── Tab A: CSV Upload ───────────────────────────────────────────────────────
 function CSVTab({ bizId }) {
@@ -30,13 +37,13 @@ function CSVTab({ bizId }) {
       fd.append('file', file)
       const r = await api.post(`/businesses/${bizId}/data-input/upload-csv`, fd)
       setSession(r.data)
-      // Pre-fill from suggested mappings
       const init = {}
       r.data.columns.forEach(col => {
         init[col] = r.data.suggested_mappings?.[col] || '(skip)'
       })
       setMappings(init)
       setStep('map')
+      toast.success(`Found ${r.data.row_count} rows in file`)
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Upload failed')
     } finally {
@@ -56,6 +63,7 @@ function CSVTab({ bizId }) {
       })
       setValidation(r.data)
       setStep('validate')
+      toast.success('Column mappings verified')
     } catch (err) {
       toast.error('Validation failed')
     } finally {
@@ -76,7 +84,7 @@ function CSVTab({ bizId }) {
       })
       setResult(r.data)
       setStep('done')
-      toast.success(`Imported ${r.data.imported} records!`)
+      toast.success(`Successfully imported ${r.data.imported} records!`)
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Import failed')
     } finally {
@@ -87,18 +95,24 @@ function CSVTab({ bizId }) {
   const reset = () => { setStep('upload'); setSession(null); setMappings({}); setValidation(null); setResult(null) }
 
   if (step === 'done') return (
-    <div className="text-center py-10">
-      <CheckCircle size={48} className="text-green-500 mx-auto mb-3" />
-      <h3 className="text-lg font-semibold mb-1">Import Complete</h3>
-      <p className="text-gray-500 mb-1">{result.imported} records imported successfully.</p>
-      {result.skipped > 0 && <p className="text-amber-600 text-sm">{result.skipped} rows skipped.</p>}
+    <div className="card text-center py-12 space-y-3">
+      <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+        <CheckCircle2 size={32} />
+      </div>
+      <h3 className="text-lg font-bold text-slate-900">Ingestion Complete</h3>
+      <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">
+        Successfully loaded <strong className="text-slate-800">{result.imported}</strong> ledger records into your database.
+      </p>
+      {result.skipped > 0 && <p className="text-amber-600 text-xs font-semibold">{result.skipped} rows skipped due to invalid formats.</p>}
       {result.errors?.length > 0 && (
-        <details className="mt-3 text-left max-w-lg mx-auto">
-          <summary className="text-sm text-gray-500 cursor-pointer">View skipped row details</summary>
-          <ul className="mt-2 text-xs text-red-600 space-y-1">{result.errors.map((e,i)=><li key={i}>{e}</li>)}</ul>
+        <details className="mt-3 text-left max-w-md mx-auto text-xs text-rose-600 bg-rose-50 p-3 rounded-xl border border-rose-100">
+          <summary className="font-semibold cursor-pointer">View skipped row error details</summary>
+          <ul className="mt-2 space-y-1">{result.errors.map((e,i)=><li key={i}>• {e}</li>)}</ul>
         </details>
       )}
-      <button onClick={reset} className="btn-primary mt-5">Upload Another File</button>
+      <div className="pt-4">
+        <button onClick={reset} className="btn-primary">Upload Another File</button>
+      </div>
     </div>
   )
 
@@ -110,44 +124,54 @@ function CSVTab({ bizId }) {
           onDragOver={e => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={() => setDragOver(false)}
           onDrop={e => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]) }}
-          className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${dragOver ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
+          className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all ${
+            dragOver
+              ? 'border-primary-500 bg-primary-50/60 ring-4 ring-primary-500/10'
+              : 'border-slate-200/90 hover:border-slate-300 bg-white'
+          }`}
         >
-          <Upload size={36} className="text-gray-300 mx-auto mb-3" />
-          <p className="font-medium text-gray-700 mb-1">Drop your CSV or Excel file here</p>
-          <p className="text-sm text-gray-400 mb-4">Supports .csv, .xlsx, .xls — up to 10 MB</p>
-          <label className="btn-primary cursor-pointer">
-            Browse File
+          <div className="w-14 h-14 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center mx-auto mb-4 shadow-xs">
+            <Upload size={28} />
+          </div>
+          <h3 className="text-base font-bold text-slate-800 mb-1">Upload CSV or Excel Spreadsheet</h3>
+          <p className="text-xs text-slate-400 mb-5 max-w-sm mx-auto">
+            Drag and drop your sales reports, billing sheets, or inventory exports (.csv, .xlsx, .xls up to 10MB)
+          </p>
+          <label className="btn-primary cursor-pointer px-5 py-2.5 shadow-sm">
+            <span>Browse Local Files</span>
             <input type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={e => handleFile(e.target.files[0])} />
           </label>
-          {loading && <p className="mt-3 text-sm text-gray-400">Uploading…</p>}
+          {loading && <p className="mt-4 text-xs font-semibold text-primary-600 animate-pulse">Parsing columns and previewing data…</p>}
         </div>
       )}
 
       {/* Step 2: Column mapping */}
       {(step === 'map' || step === 'validate') && session && (
         <>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pb-1">
             <div>
-              <p className="font-medium text-gray-800">{session.row_count} rows detected</p>
-              <p className="text-sm text-gray-500">Map each column to the correct field. Columns marked "(skip)" will be ignored.</p>
+              <p className="font-bold text-slate-800 text-sm">{session.row_count} Rows Detected</p>
+              <p className="text-xs text-slate-500">Map your file headers to our ledger fields. Columns marked "(skip)" are ignored.</p>
             </div>
-            <button onClick={reset} className="btn-secondary text-sm">Start Over</button>
+            <button onClick={reset} className="btn-secondary text-xs py-1.5 px-3">Start Over</button>
           </div>
 
-          {/* Preview */}
-          <details className="card">
-            <summary className="cursor-pointer text-sm font-medium text-gray-700 flex items-center gap-2">
-              <ChevronDown size={14} /> Preview (first 5 rows)
+          {/* Preview accordion */}
+          <details className="card p-4">
+            <summary className="cursor-pointer text-xs font-bold text-slate-700 flex items-center gap-2">
+              <ChevronDown size={14} /> Preview (first 5 rows from file)
             </summary>
             <div className="overflow-x-auto mt-3">
-              <table className="w-full text-xs">
+              <table className="w-full text-[11px]">
                 <thead>
-                  <tr>{session.columns.map(c => <th key={c} className="text-left pb-1 font-medium text-gray-500 pr-4 whitespace-nowrap">{c}</th>)}</tr>
+                  <tr className="border-b border-slate-100 text-slate-400 uppercase text-left">
+                    {session.columns.map(c => <th key={c} className="pb-1.5 pr-4 whitespace-nowrap">{c}</th>)}
+                  </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {session.preview.map((row, i) => (
-                    <tr key={i} className="border-t border-gray-50">
-                      {session.columns.map(c => <td key={c} className="py-1 pr-4 text-gray-700 whitespace-nowrap">{String(row[c] ?? '')}</td>)}
+                    <tr key={i} className="hover:bg-slate-50">
+                      {session.columns.map(c => <td key={c} className="py-1.5 pr-4 text-slate-700 whitespace-nowrap">{String(row[c] ?? '')}</td>)}
                     </tr>
                   ))}
                 </tbody>
@@ -157,14 +181,14 @@ function CSVTab({ bizId }) {
 
           {/* Mapping grid */}
           <div className="card">
-            <h3 className="mb-3">Column Mappings</h3>
+            <h3 className="text-sm font-bold text-slate-900 mb-3">Field Alignment Schema</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {session.columns.map(col => (
-                <div key={col} className="flex items-center gap-3">
-                  <span className="text-sm text-gray-700 font-medium w-40 truncate" title={col}>{col}</span>
-                  <span className="text-gray-300">→</span>
+                <div key={col} className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                  <span className="text-xs font-semibold text-slate-700 w-36 truncate" title={col}>{col}</span>
+                  <span className="text-slate-300 text-xs">→</span>
                   <select
-                    className="input flex-1 text-sm"
+                    className="input flex-1 text-xs py-1.5 bg-white"
                     value={mappings[col] || '(skip)'}
                     onChange={e => setMappings(m => ({ ...m, [col]: e.target.value }))}
                   >
@@ -175,27 +199,27 @@ function CSVTab({ bizId }) {
             </div>
           </div>
 
-          {/* Validation results */}
+          {/* Validation card */}
           {step === 'validate' && validation && (
-            <div className={`card border ${validation.issues?.length ? 'border-amber-200 bg-amber-50' : 'border-green-200 bg-green-50'}`}>
-              <div className="flex items-center gap-2 mb-2">
+            <div className={`card border ${validation.issues?.length ? 'border-amber-200 bg-amber-50/60' : 'border-emerald-200 bg-emerald-50/60'}`}>
+              <div className="flex items-center gap-2 mb-1">
                 {validation.issues?.length
-                  ? <AlertCircle size={16} className="text-amber-600" />
-                  : <CheckCircle size={16} className="text-green-600" />}
-                <span className="font-medium text-sm">
-                  {validation.valid_rows} valid rows ready to import
-                  {validation.issues?.length > 0 && `, ${validation.issues.length} issue(s) found`}
+                  ? <AlertCircle size={17} className="text-amber-600" />
+                  : <CheckCircle size={17} className="text-emerald-600" />}
+                <span className="font-bold text-xs sm:text-sm text-slate-800">
+                  {validation.valid_rows} rows verified and ready to commit
+                  {validation.issues?.length > 0 && ` (${validation.issues.length} warnings detected)`}
                 </span>
               </div>
               {validation.issues?.length > 0 && (
-                <ul className="text-xs text-amber-700 space-y-0.5 mt-1">
-                  {validation.issues.map((e,i) => <li key={i}>{e}</li>)}
+                <ul className="text-xs text-amber-700 space-y-1 mt-2">
+                  {validation.issues.map((e,i) => <li key={i}>• {e}</li>)}
                 </ul>
               )}
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-1">
             {step === 'map' && (
               <button onClick={handleValidate} disabled={loading} className="btn-primary">
                 {loading ? 'Validating…' : 'Validate Mappings'}
@@ -247,6 +271,7 @@ function ImageTab({ bizId }) {
       const r = await api.post(`/businesses/${bizId}/data-input/upload-image`, fd)
       setOcrResult(r.data)
       if (r.data.structured_data) setEditData({ ...r.data.structured_data })
+      toast.success('Text and numbers digitized via OCR')
     } catch (err) {
       toast.error(err.response?.data?.detail || 'OCR extraction failed')
     } finally {
@@ -259,7 +284,7 @@ function ImageTab({ bizId }) {
     try {
       await api.post(`/businesses/${bizId}/data-input/confirm-ocr`, { transaction: editData })
       setSaved(true)
-      toast.success('Transaction saved!')
+      toast.success('Transaction saved to database!')
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Save failed')
     } finally {
@@ -271,30 +296,32 @@ function ImageTab({ bizId }) {
 
   return (
     <div className="space-y-5">
-      <div className="card border-dashed border-2 border-gray-200 text-center p-8">
-        <Image size={36} className="text-gray-300 mx-auto mb-3" />
-        <p className="font-medium text-gray-700 mb-1">Upload bill or handwritten record image</p>
-        <p className="text-sm text-gray-400 mb-4">JPG, JPEG, PNG — up to 5 MB</p>
-        <label className="btn-primary cursor-pointer">
-          Choose Image
+      <div className="card border-dashed border-2 border-slate-200/90 text-center p-8 bg-white">
+        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+          <Scan size={24} />
+        </div>
+        <p className="font-bold text-slate-800 text-sm mb-1">Scan Invoice, Receipt or Bill Photo</p>
+        <p className="text-xs text-slate-400 mb-4">Supports JPG, PNG paper camera captures up to 5 MB</p>
+        <label className="btn-primary cursor-pointer px-5 py-2 text-xs">
+          Choose Receipt Image
           <input type="file" accept=".jpg,.jpeg,.png" className="hidden" onChange={e => handleFile(e.target.files[0])} />
         </label>
       </div>
 
       {preview && (
-        <div className="card">
-          <div className="flex flex-col sm:flex-row gap-5">
-            <img src={preview} alt="preview" className="w-full sm:w-64 h-48 object-contain rounded-lg border border-gray-100 bg-gray-50" />
+        <div className="card p-4">
+          <div className="flex flex-col sm:flex-row gap-5 items-center">
+            <img src={preview} alt="preview" className="w-full sm:w-60 h-44 object-contain rounded-xl border border-slate-200 bg-slate-50" />
             <div className="flex-1 space-y-3">
-              <p className="text-sm font-medium text-gray-700">Image ready: <span className="text-gray-500">{file?.name}</span></p>
+              <p className="text-xs font-bold text-slate-700">Image Loaded: <span className="text-slate-500 font-normal">{file?.name}</span></p>
               {!ocrResult && (
-                <button onClick={handleExtract} disabled={loading} className="btn-primary">
-                  {loading ? 'Extracting with OCR…' : 'Extract Text with OCR'}
+                <button onClick={handleExtract} disabled={loading} className="btn-primary text-xs">
+                  {loading ? 'Running OCR Engine…' : 'Extract Text & Digitize'}
                 </button>
               )}
               {ocrResult && !ocrResult.success && (
-                <div className="flex items-start gap-2 text-red-600 text-sm">
-                  <XCircle size={16} className="mt-0.5 shrink-0" />
+                <div className="flex items-start gap-2 text-rose-600 text-xs">
+                  <XCircle size={15} className="mt-0.5 shrink-0" />
                   <p>{ocrResult.error}</p>
                 </div>
               )}
@@ -304,18 +331,24 @@ function ImageTab({ bizId }) {
       )}
 
       {ocrResult?.success && (
-        <div className="card">
-          <h3 className="mb-3">Extracted Text</h3>
-          <pre className="bg-gray-50 rounded-lg p-3 text-xs text-gray-700 whitespace-pre-wrap border border-gray-100 max-h-32 overflow-y-auto">
+        <div className="card p-4">
+          <h3 className="text-xs font-bold text-slate-900 mb-2">Raw Extracted Text</h3>
+          <pre className="bg-slate-50 rounded-xl p-3 text-xs text-slate-700 whitespace-pre-wrap border border-slate-200 max-h-32 overflow-y-auto font-mono">
             {ocrResult.extracted_text}
           </pre>
         </div>
       )}
 
       {editData && !saved && (
-        <div className="card border-2 border-primary-100">
-          <h3 className="mb-1">Extracted Transaction — Please Review &amp; Confirm</h3>
-          <p className="text-sm text-gray-500 mb-4">Edit any field before saving. Never saves automatically.</p>
+        <div className="card border-2 border-primary-200/80 space-y-4">
+          <div>
+            <span className="text-[10px] font-bold text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full uppercase">
+              Human-in-the-Loop Review
+            </span>
+            <h3 className="text-base font-bold text-slate-900 mt-1">Review Digitized Transaction</h3>
+            <p className="text-xs text-slate-500">Verify extracted amounts before committing to the business ledger.</p>
+          </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
               ['transaction_type','Type (sale/purchase)','text'],
@@ -328,26 +361,32 @@ function ImageTab({ bizId }) {
             ].map(([k, label, type]) => (
               <div key={k}>
                 <label className="label">{label}</label>
-                <input type={type} className="input" value={editData[k] ?? ''} onChange={edit(k)} />
+                <input type={type} className="input text-xs" value={editData[k] ?? ''} onChange={edit(k)} />
               </div>
             ))}
           </div>
-          <div className="flex gap-3 mt-4">
+
+          <div className="flex items-center gap-3 pt-2">
             <button onClick={handleSave} disabled={loading} className="btn-primary">
-              {loading ? 'Saving…' : 'Confirm & Save'}
+              {loading ? 'Saving…' : 'Confirm & Save Transaction'}
             </button>
             <button onClick={() => setEditData(null)} className="btn-danger">Cancel</button>
           </div>
-          <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-            <AlertCircle size={12} /> Confidence: {editData.confidence || 'low'} — please verify all fields.
-          </p>
         </div>
       )}
 
       {saved && (
-        <div className="card border-green-200 bg-green-50 flex items-center gap-3">
-          <CheckCircle size={20} className="text-green-600" />
-          <p className="text-green-700 font-medium">Transaction saved to database.</p>
+        <div className="card border-emerald-200 bg-emerald-50/70 flex items-center justify-between gap-3 p-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={20} className="text-emerald-600" />
+            <p className="text-xs font-bold text-emerald-800">Transaction successfully saved to database.</p>
+          </div>
+          <button
+            onClick={() => { setFile(null); setPreview(null); setOcrResult(null); setEditData(null); setSaved(false) }}
+            className="btn-secondary text-xs py-1 px-3"
+          >
+            Scan Another
+          </button>
         </div>
       )}
     </div>
@@ -377,6 +416,7 @@ function NLPTab({ bizId }) {
       const r = await api.post(`/businesses/${bizId}/data-input/nlp-extract`, { text })
       setExtracted(r.data)
       setEditData({ ...r.data.extracted })
+      toast.success('Parsed transaction details from text')
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Extraction failed')
     } finally {
@@ -401,36 +441,45 @@ function NLPTab({ bizId }) {
 
   return (
     <div className="space-y-5">
-      <div className="card">
-        <label className="label">Describe your transaction in plain English</label>
+      <div className="card space-y-3">
+        <label className="label">Describe Your Transaction in Plain Natural Language</label>
         <textarea
-          className="input h-24 resize-none"
-          placeholder='e.g. "Sold 10 packets of Maggi for ₹150 today."'
+          className="input h-24 resize-none text-xs sm:text-sm"
+          placeholder='e.g. "Sold 10 packets of Maggi for ₹150 today in cash."'
           value={text}
           onChange={e => setText(e.target.value)}
         />
-        <div className="flex flex-wrap gap-2 mt-3">
-          {EXAMPLES.map(ex => (
-            <button
-              key={ex}
-              onClick={() => setText(ex)}
-              className="text-xs bg-gray-100 hover:bg-primary-50 hover:text-primary-700 text-gray-600 px-2.5 py-1 rounded-full transition-colors"
-            >
-              {ex.substring(0, 40)}…
-            </button>
-          ))}
+        <div>
+          <p className="text-[11px] font-semibold text-slate-400 mb-1.5 uppercase">Quick Examples:</p>
+          <div className="flex flex-wrap gap-2">
+            {EXAMPLES.map(ex => (
+              <button
+                key={ex}
+                onClick={() => setText(ex)}
+                className="text-xs bg-slate-100 hover:bg-primary-50 hover:text-primary-700 text-slate-600 px-3 py-1 rounded-full transition-colors border border-slate-200/60"
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
         </div>
-        <button onClick={handleExtract} disabled={loading || !text.trim()} className="btn-primary mt-4">
-          {loading ? 'Extracting…' : 'Extract Transaction'}
+        <button onClick={handleExtract} disabled={loading || !text.trim()} className="btn-primary mt-2">
+          {loading ? 'Parsing with NLP…' : 'Extract Transaction'}
         </button>
       </div>
 
       {editData && !saved && (
-        <div className="card border-2 border-primary-100">
-          <h3 className="mb-1">Extracted Transaction — Please Review</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Original: <em className="text-gray-700">"{extracted?.original_text}"</em>
-          </p>
+        <div className="card border-2 border-primary-200/80 space-y-4">
+          <div>
+            <span className="text-[10px] font-bold text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full uppercase">
+              NLP Extraction Review
+            </span>
+            <h3 className="text-base font-bold text-slate-900 mt-1">Review Extracted Details</h3>
+            <p className="text-xs text-slate-500">
+              Source: <em className="text-slate-700">"{extracted?.original_text}"</em>
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
               ['transaction_type','Type (sale/purchase)'],
@@ -443,14 +492,12 @@ function NLPTab({ bizId }) {
             ].map(([k, label]) => (
               <div key={k}>
                 <label className="label">{label}</label>
-                <input className="input" value={editData[k] ?? ''} onChange={edit(k)} />
+                <input className="input text-xs" value={editData[k] ?? ''} onChange={edit(k)} />
               </div>
             ))}
           </div>
-          <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
-            <AlertCircle size={12} /> AI confidence: {editData.confidence || 'low'} — verify before saving.
-          </p>
-          <div className="flex gap-3 mt-3">
+
+          <div className="flex gap-3 pt-2">
             <button onClick={handleSave} disabled={loading} className="btn-primary">
               {loading ? 'Saving…' : 'Confirm & Save'}
             </button>
@@ -460,10 +507,15 @@ function NLPTab({ bizId }) {
       )}
 
       {saved && (
-        <div className="card border-green-200 bg-green-50 flex items-center gap-3">
-          <CheckCircle size={20} className="text-green-600" />
-          <p className="text-green-700 font-medium">Transaction saved to database.</p>
-          <button onClick={() => { setExtracted(null); setEditData(null); setSaved(false); setText('') }} className="ml-auto btn-secondary text-sm">
+        <div className="card border-emerald-200 bg-emerald-50/70 flex items-center justify-between gap-3 p-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={20} className="text-emerald-600" />
+            <p className="text-xs font-bold text-emerald-800">Transaction successfully saved to database.</p>
+          </div>
+          <button
+            onClick={() => { setExtracted(null); setEditData(null); setSaved(false); setText('') }}
+            className="btn-secondary text-xs py-1 px-3"
+          >
             Add Another
           </button>
         </div>
@@ -474,9 +526,9 @@ function NLPTab({ bizId }) {
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'csv',   label: 'Upload CSV / Excel', icon: Upload },
-  { id: 'image', label: 'Upload Image (OCR)',  icon: Image },
-  { id: 'nlp',   label: 'Natural Language',    icon: MessageSquare },
+  { id: 'csv',   label: 'CSV / Excel Upload', icon: FileSpreadsheet, desc: 'Batch spreadsheets' },
+  { id: 'image', label: 'Receipt Scanner (OCR)', icon: Scan, desc: 'Paper bill images' },
+  { id: 'nlp',   label: 'Natural Language Entry', icon: MessageSquare, desc: 'Sentence dictation' },
 ]
 
 export default function DataInput() {
@@ -486,22 +538,38 @@ export default function DataInput() {
   if (!activeBusiness) return <NoBusiness />
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-4xl mx-auto space-y-6">
       <PageHeader
-        title="Data Input"
-        subtitle="Add transaction data through CSV upload, image scanning, or plain text."
+        title="Multimodal Data Ingestion"
+        subtitle={`Capture sales, expenses, and inventory adjustments into ${activeBusiness.business_name} ledger.`}
+        badge="Zero Manual Entry"
       />
 
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-6">
+      {/* Segmented Tab Buttons */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`tab flex items-center gap-2 ${tab === t.id ? 'active' : ''}`}
+            className={`p-3.5 rounded-xl border text-left transition-all ${
+              tab === t.id
+                ? 'border-primary-600 bg-white ring-2 ring-primary-500/20 shadow-xs'
+                : 'border-slate-200 hover:border-slate-300 bg-slate-50/60'
+            }`}
           >
-            <t.icon size={15} />
-            {t.label}
+            <div className="flex items-center gap-2.5">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                tab === t.id ? 'bg-primary-600 text-white' : 'bg-slate-200/80 text-slate-500'
+              }`}>
+                <t.icon size={16} />
+              </div>
+              <div>
+                <p className={`text-xs font-bold ${tab === t.id ? 'text-primary-700' : 'text-slate-800'}`}>
+                  {t.label}
+                </p>
+                <p className="text-[10px] text-slate-400">{t.desc}</p>
+              </div>
+            </div>
           </button>
         ))}
       </div>

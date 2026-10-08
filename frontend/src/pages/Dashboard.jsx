@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 import {
   DollarSign, TrendingUp, TrendingDown, ShoppingCart,
-  AlertTriangle, RefreshCw, Database,
+  AlertTriangle, RefreshCw, Database, Sparkles, PlusCircle,
+  FileSpreadsheet, ArrowRight, ArrowUpRight, Flame, Layers, Share2
 } from 'lucide-react'
 import api from '../services/api'
 import { useBusiness } from '../context/BusinessContext'
@@ -15,10 +17,10 @@ import NoBusiness from '../components/NoBusiness'
 import LoadingSpinner from '../components/LoadingSpinner'
 import EmptyState from '../components/EmptyState'
 
-const COLORS = ['#3b82f6','#14b8a6','#f59e0b','#ef4444','#8b5cf6','#10b981','#f97316','#06b6d4']
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#f97316', '#14b8a6']
 
 const fmt = (n, currency = 'INR') =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n)
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n || 0)
 
 const fmtShort = (n) => {
   if (n >= 100000) return `${(n/100000).toFixed(1)}L`
@@ -26,8 +28,29 @@ const fmtShort = (n) => {
   return n?.toFixed(0) ?? '0'
 }
 
+// Custom Tooltip for charts
+function CustomChartTooltip({ active, payload, label, currency = 'INR' }) {
+  if (!active || !payload || !payload.length) return null
+
+  return (
+    <div className="bg-slate-900/90 backdrop-blur-md text-white px-3.5 py-2.5 rounded-xl shadow-xl border border-slate-700/60 text-xs space-y-1">
+      <p className="font-bold text-slate-300 pb-1 border-b border-slate-700/60">{label}</p>
+      {payload.map((entry, index) => (
+        <div key={index} className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
+            <span className="text-slate-300">{entry.name}:</span>
+          </div>
+          <span className="font-bold text-white">{fmt(entry.value, currency)}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const { activeBusiness } = useBusiness()
+  const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [period, setPeriod] = useState(30)
@@ -63,7 +86,7 @@ export default function Dashboard() {
   useEffect(() => { fetchDashboard() }, [fetchDashboard])
 
   if (!activeBusiness) return <NoBusiness />
-  if (loading) return <LoadingSpinner message="Loading dashboard…" />
+  if (loading) return <LoadingSpinner message="Calculating real-time analytics..." />
 
   const s = data?.summary
   const currency = activeBusiness.currency || 'INR'
@@ -71,14 +94,14 @@ export default function Dashboard() {
 
   // Prepare charts
   const dailySales = (data?.daily_sales || []).map(d => ({
-    date: d.date.slice(5),   // MM-DD
+    date: d.date.slice(5),
     Sales: d.amount,
   }))
   const dailyExpenses = (data?.daily_expenses || []).map(d => ({
     date: d.date.slice(5),
     Expenses: d.amount,
   }))
-  // Merge sales + expenses by date for combined chart
+
   const combinedMap = {}
   dailySales.forEach(d => { combinedMap[d.date] = { date: d.date, Sales: d.Sales, Expenses: 0 } })
   dailyExpenses.forEach(d => {
@@ -90,39 +113,138 @@ export default function Dashboard() {
   const categoryData = data?.sales_by_category || []
   const topProducts  = data?.top_products || []
   const lowStock     = data?.low_stock || []
-  const recentTx     = [] // loaded separately if needed
+
+  // Derived margin
+  const profitMargin = s?.total_revenue > 0
+    ? ((s.estimated_profit / s.total_revenue) * 100).toFixed(1)
+    : null
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={`${activeBusiness.business_name} — Dashboard`}
-        subtitle={`${activeBusiness.business_type} · ${activeBusiness.currency}`}
-        actions={
+      {/* ── Top Header with Period Pills & Quick Actions ── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
+        <div>
           <div className="flex items-center gap-2">
-            <select
-              className="input w-auto text-sm"
-              value={period}
-              onChange={e => setPeriod(Number(e.target.value))}
-            >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-            </select>
-            <button onClick={fetchDashboard} className="btn-secondary flex items-center gap-1.5 text-sm">
-              <RefreshCw size={14} /> Refresh
-            </button>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Operations Overview
+            </h1>
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200">
+              Live DB
+            </span>
           </div>
-        }
-      />
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Real-time financial performance and automated inventory tracking for <span className="font-semibold text-slate-700">{activeBusiness.business_name}</span>.
+          </p>
+        </div>
 
-      {/* No data state */}
+        {/* Period Selector & Refresh */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="inline-flex p-1 bg-slate-200/60 rounded-xl">
+            {[
+              { label: '7D', value: 7 },
+              { label: '30D', value: 30 },
+              { label: '90D', value: 90 },
+            ].map(p => (
+              <button
+                key={p.value}
+                onClick={() => setPeriod(p.value)}
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  period === p.value
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={fetchDashboard}
+            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-all"
+            title="Refresh dashboard"
+          >
+            <RefreshCw size={15} />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Quick Action Shortcuts Bar ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <button
+          onClick={() => navigate('/app/data-input')}
+          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-primary-50/50 border border-slate-200/80 hover:border-primary-300 text-left transition-all shadow-xs group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <PlusCircle size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-slate-800 leading-tight">Add Data</p>
+            <p className="text-[11px] text-slate-400 truncate">CSV, OCR &amp; Text</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate('/app/transactions')}
+          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-emerald-50/50 border border-slate-200/80 hover:border-emerald-300 text-left transition-all shadow-xs group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <DollarSign size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-slate-800 leading-tight">Transactions</p>
+            <p className="text-[11px] text-slate-400 truncate">History &amp; Log</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate('/app/social-generator')}
+          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-rose-50/50 border border-slate-200/80 hover:border-rose-300 text-left transition-all shadow-xs group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Share2 size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-slate-800 leading-tight">Social Studio</p>
+            <p className="text-[11px] text-slate-400 truncate">Posts &amp; Captions</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate('/app/whatif')}
+          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-purple-50/50 border border-slate-200/80 hover:border-purple-300 text-left transition-all shadow-xs group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <TrendingUp size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-slate-800 leading-tight">Simulator</p>
+            <p className="text-[11px] text-slate-400 truncate">Price &amp; Cost What-If</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate('/app/ask-ai')}
+          className="flex items-center gap-2.5 p-3 rounded-xl bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white text-left transition-all shadow-sm group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Sparkles size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold leading-tight">Ask Assistant</p>
+            <p className="text-[11px] text-primary-100 truncate">Instant data answers</p>
+          </div>
+        </button>
+      </div>
+
+      {/* ── No data state ── */}
       {!hasData && !loading && (
-        <div className="card border-dashed border-2 border-gray-200">
+        <div className="card border-dashed border-2 border-slate-200 text-center py-12">
           <EmptyState
-            title="No transaction data yet"
-            message="Load demo data or add transactions to see your dashboard come alive."
+            title="No business transactions found"
+            message="Import your sales data or load demo transactions to visualize real-time charts and unlock AI operations insights."
             action="/app/data-input"
-            actionLabel="Add Data"
+            actionLabel="Import Data / Load Demo"
             icon={Database}
           />
         </div>
@@ -137,7 +259,7 @@ export default function Dashboard() {
               value={s.total_revenue}
               prefix={currency === 'INR' ? '₹' : '$'}
               change={s.sales_growth_pct}
-              changeLabel="vs prev period"
+              changeLabel="vs previous period"
               icon={DollarSign}
               color="blue"
             />
@@ -146,202 +268,280 @@ export default function Dashboard() {
               value={s.total_expenses}
               prefix={currency === 'INR' ? '₹' : '$'}
               change={s.expense_growth_pct}
-              changeLabel="vs prev period"
+              changeLabel="vs previous period"
               icon={TrendingDown}
               color="red"
             />
             <KPICard
-              title={`Est. Profit${s.profit_is_estimate ? ' *' : ''}`}
+              title={`Net Profit${s.profit_is_estimate ? ' (Est.)' : ''}`}
               value={s.estimated_profit}
               prefix={currency === 'INR' ? '₹' : '$'}
+              change={profitMargin ? Number(profitMargin) : null}
+              changeLabel="net margin"
               icon={TrendingUp}
               color={s.estimated_profit >= 0 ? 'green' : 'red'}
             />
             <KPICard
-              title="Transactions"
+              title="Total Transactions"
               value={s.num_transactions}
+              change={s.avg_transaction_value ? null : null}
+              changeLabel={`Avg ₹${Math.round(s.avg_transaction_value || 0)}`}
               icon={ShoppingCart}
               color="purple"
             />
           </div>
-          {s.profit_is_estimate && (
-            <p className="text-xs text-amber-600 -mt-2">
-              * Profit is estimated (revenue − expenses). Add cost prices for a more accurate figure.
-            </p>
-          )}
 
-          {/* ── Revenue + Expense Trend ── */}
+          {/* ── AI Executive Briefing Banner ── */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 shadow-md border border-slate-800">
+            <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-primary-500/10 to-transparent pointer-events-none" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-indigo-500 flex items-center justify-center shrink-0 shadow-glow-primary">
+                  <Sparkles size={20} className="text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm tracking-tight text-white">AI Operations Briefing</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary-500/30 text-primary-200 border border-primary-400/30">
+                      Deterministic Facts
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                    {aiInsight
+                      ? aiInsight.summary
+                      : `Your revenue sits at ${fmt(s.total_revenue, currency)} over the last ${period} days with ${s.num_transactions} logged transactions. Click Generate to produce automated operational guidance.`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={fetchAI}
+                  disabled={aiLoading}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-900 hover:bg-slate-100 shadow-sm transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+                >
+                  <Sparkles size={13} className="text-primary-600" />
+                  {aiLoading ? 'Synthesizing…' : (aiInsight ? 'Refresh Briefing' : 'Generate Briefing')}
+                </button>
+                <button
+                  onClick={() => navigate('/app/ai-insights')}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  View Details →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Revenue & Expense Trend Chart ── */}
           <div className="card">
-            <h3 className="mb-4">Revenue &amp; Expense Trend (last 60 days)</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Revenue &amp; Expense Velocity</h3>
+                <p className="text-xs text-slate-500">Daily financial trajectory comparing gross intake vs overhead</p>
+              </div>
+              <div className="flex items-center gap-4 text-xs font-semibold">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-sm bg-primary-500"></span>
+                  <span className="text-slate-600">Sales</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-sm bg-rose-500"></span>
+                  <span className="text-slate-600">Expenses</span>
+                </div>
+              </div>
+            </div>
+
             {combined.length < 3 ? (
-              <p className="text-sm text-gray-400 py-8 text-center">Not enough data for a trend chart yet.</p>
+              <div className="py-12 text-center text-slate-400 text-sm">
+                Need at least 3 days of transaction data to generate a multi-day velocity curve.
+              </div>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={combined}>
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={combined} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#4f46e5" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.0} />
                     </linearGradient>
                     <linearGradient id="gExp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.12} />
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#f43f5e" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
-                  <YAxis tickFormatter={fmtShort} tick={{ fontSize: 11 }} tickLine={false} />
-                  <Tooltip formatter={(v) => fmt(v, currency)} />
-                  <Legend />
-                  <Area type="monotone" dataKey="Sales"    stroke="#3b82f6" fill="url(#gSales)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="Expenses" stroke="#ef4444" fill="url(#gExp)"   strokeWidth={2} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={{ stroke: '#f1f5f9' }} />
+                  <YAxis tickFormatter={fmtShort} tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={{ stroke: '#f1f5f9' }} />
+                  <Tooltip content={<CustomChartTooltip currency={currency} />} />
+                  <Area type="monotone" dataKey="Sales" stroke="#4f46e5" strokeWidth={2.5} fill="url(#gSales)" />
+                  <Area type="monotone" dataKey="Expenses" stroke="#f43f5e" strokeWidth={2} fill="url(#gExp)" />
                 </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
 
-          {/* ── Two-column: Category pie + Top products bar ── */}
+          {/* ── Two-column: Category Breakdown & Top Products ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Sales by category */}
-            <div className="card">
-              <h3 className="mb-4">Sales by Category</h3>
+            <div className="card flex flex-col justify-between">
+              <div className="mb-4">
+                <h3 className="text-base font-bold text-slate-900">Revenue Contribution by Category</h3>
+                <p className="text-xs text-slate-500">Distribution across product lines</p>
+              </div>
+
               {categoryData.length === 0 ? (
-                <p className="text-sm text-gray-400 py-8 text-center">No category data available.</p>
+                <div className="py-12 text-center text-slate-400 text-sm">No categorized sales in this period.</div>
               ) : (
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      dataKey="total"
-                      nameKey="category"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={({ category, percent }) => `${category} ${(percent*100).toFixed(0)}%`}
-                      labelLine={false}
-                    >
-                      {categoryData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v) => fmt(v, currency)} />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-4">
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={categoryData}
+                        dataKey="total"
+                        nameKey="category"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={75}
+                        paddingAngle={3}
+                      >
+                        {categoryData.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomChartTooltip currency={currency} />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+
+                  <div className="space-y-2 text-xs">
+                    {categoryData.slice(0, 5).map((cat, i) => (
+                      <div key={cat.category} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                          <span className="text-slate-600 truncate font-medium">{cat.category}</span>
+                        </div>
+                        <span className="font-bold text-slate-800">{fmt(cat.total, currency)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
 
-            {/* Top products */}
-            <div className="card">
-              <h3 className="mb-4">Top Products by Revenue</h3>
+            {/* Top products ranking */}
+            <div className="card flex flex-col justify-between">
+              <div className="mb-4">
+                <h3 className="text-base font-bold text-slate-900">Top Revenue Generators</h3>
+                <p className="text-xs text-slate-500">Ranked by volume and gross proceeds</p>
+              </div>
+
               {topProducts.length === 0 ? (
-                <p className="text-sm text-gray-400 py-8 text-center">No product data available.</p>
+                <div className="py-12 text-center text-slate-400 text-sm">No product revenue data recorded.</div>
               ) : (
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={topProducts} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                    <XAxis type="number" tickFormatter={fmtShort} tick={{ fontSize: 11 }} tickLine={false} />
-                    <YAxis type="category" dataKey="product_name" tick={{ fontSize: 11 }} tickLine={false} width={100} />
-                    <Tooltip formatter={(v) => fmt(v, currency)} />
-                    <Bar dataKey="total_revenue" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={topProducts.slice(0, 5)} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                    <XAxis type="number" tickFormatter={fmtShort} tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                    <YAxis type="category" dataKey="product_name" tick={{ fontSize: 11, fill: '#475569' }} tickLine={false} axisLine={false} width={110} />
+                    <Tooltip content={<CustomChartTooltip currency={currency} />} />
+                    <Bar dataKey="total_revenue" fill="#4f46e5" radius={[0, 6, 6, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
           </div>
 
-          {/* ── Low stock + AI insights ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Low stock */}
+          {/* ── Low Stock Monitor & Full Top Products Table ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {/* Low stock alerts (1 col) */}
             <div className="card">
-              <h3 className="mb-3 flex items-center gap-2">
-                <AlertTriangle size={16} className="text-amber-500" /> Low Stock Alerts
-              </h3>
-              {lowStock.length === 0 ? (
-                <p className="text-sm text-gray-400 py-4 text-center">No low-stock products. All good!</p>
-              ) : (
-                <div className="space-y-2">
-                  {lowStock.map(p => (
-                    <div key={p.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{p.name}</p>
-                        <p className="text-xs text-gray-500">Reorder at: {p.reorder_level} {p.unit || ''}</p>
-                      </div>
-                      <span className="badge-high">{p.current_stock} left</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* AI Insight panel */}
-            <div className="card bg-gradient-to-br from-primary-50 to-white">
               <div className="flex items-center justify-between mb-3">
-                <h3>AI Business Insight</h3>
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <AlertTriangle size={15} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Inventory Watchlist</h3>
+                    <p className="text-[11px] text-slate-400">Items nearing replenishment limit</p>
+                  </div>
+                </div>
                 <button
-                  onClick={fetchAI}
-                  disabled={aiLoading}
-                  className="btn-secondary text-xs py-1 px-3"
+                  onClick={() => navigate('/app/products')}
+                  className="text-xs font-semibold text-primary-600 hover:text-primary-700"
                 >
-                  {aiLoading ? 'Generating…' : 'Generate'}
+                  Manage
                 </button>
               </div>
-              {aiLoading && (
-                <div className="flex items-center gap-2 py-6 text-gray-400 text-sm justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500" />
-                  Asking AI…
+
+              {lowStock.length === 0 ? (
+                <div className="p-6 text-center rounded-xl bg-slate-50/50 border border-slate-100">
+                  <p className="text-xs font-medium text-emerald-600">✓ Healthy Stock Levels</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">All inventory counts are above safety thresholds.</p>
                 </div>
-              )}
-              {!aiLoading && aiInsight && (
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-700 leading-relaxed">{aiInsight.summary}</p>
-                  {aiInsight.key_problems?.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">Key Problems</p>
-                      <ul className="space-y-1">
-                        {aiInsight.key_problems.slice(0, 3).map((p, i) => (
-                          <li key={i} className="text-xs text-gray-600 flex gap-1.5">
-                            <span className="text-red-400 mt-0.5">•</span>{p}
-                          </li>
-                        ))}
-                      </ul>
+              ) : (
+                <div className="space-y-2 mt-3">
+                  {lowStock.map(p => (
+                    <div key={p.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 truncate">{p.name}</p>
+                        <p className="text-[10px] text-slate-500">Safety mark: {p.reorder_level} {p.unit || 'units'}</p>
+                      </div>
+                      <span className="badge-high text-[11px]">
+                        {p.current_stock} left
+                      </span>
                     </div>
-                  )}
+                  ))}
                 </div>
-              )}
-              {!aiLoading && !aiInsight && (
-                <p className="text-sm text-gray-400 py-4 text-center">
-                  Click "Generate" to get AI-powered insights based on your real business data.
-                </p>
               )}
             </div>
-          </div>
 
-          {/* ── Top products table ── */}
-          <div className="card">
-            <h3 className="mb-4">Top Selling Products</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 text-left">
-                    <th className="pb-2 font-medium text-gray-500">#</th>
-                    <th className="pb-2 font-medium text-gray-500">Product</th>
-                    <th className="pb-2 font-medium text-gray-500 text-right">Qty Sold</th>
-                    <th className="pb-2 font-medium text-gray-500 text-right">Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topProducts.length === 0 ? (
-                    <tr><td colSpan={4} className="py-6 text-center text-gray-400">No data</td></tr>
-                  ) : topProducts.map((p, i) => (
-                    <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
-                      <td className="py-2.5 text-gray-400 font-medium">{i + 1}</td>
-                      <td className="py-2.5 font-medium text-gray-800">{p.product_name}</td>
-                      <td className="py-2.5 text-right text-gray-600">{p.total_quantity?.toLocaleString()}</td>
-                      <td className="py-2.5 text-right font-semibold text-gray-800">{fmt(p.total_revenue, currency)}</td>
+            {/* Top products table (2 cols) */}
+            <div className="card lg:col-span-2">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Product Performance Matrix</h3>
+                  <p className="text-xs text-slate-500">Unit breakdown and income volume</p>
+                </div>
+                <button
+                  onClick={() => navigate('/app/products')}
+                  className="text-xs font-semibold text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                >
+                  View All <ArrowRight size={13} />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-slate-400 uppercase tracking-wider font-semibold text-left">
+                      <th className="pb-2.5 pl-1">Rank</th>
+                      <th className="pb-2.5">Product Name</th>
+                      <th className="pb-2.5 text-right">Qty Delivered</th>
+                      <th className="pb-2.5 text-right pr-1">Total Turnover</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100/80">
+                    {topProducts.length === 0 ? (
+                      <tr><td colSpan={4} className="py-6 text-center text-slate-400">No transactions recorded yet</td></tr>
+                    ) : topProducts.map((p, i) => (
+                      <tr key={i} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-2.5 pl-1">
+                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-md font-bold text-[10px] ${
+                            i === 0 ? 'bg-amber-100 text-amber-800' :
+                            i === 1 ? 'bg-slate-200 text-slate-700' :
+                            i === 2 ? 'bg-orange-100 text-orange-800' : 'text-slate-400'
+                          }`}>
+                            #{i + 1}
+                          </span>
+                        </td>
+                        <td className="py-2.5 font-bold text-slate-800">{p.product_name}</td>
+                        <td className="py-2.5 text-right text-slate-600 font-medium">{p.total_quantity?.toLocaleString()}</td>
+                        <td className="py-2.5 text-right pr-1 font-bold text-slate-900">{fmt(p.total_revenue, currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </>
