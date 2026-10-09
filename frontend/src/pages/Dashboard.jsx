@@ -7,7 +7,8 @@ import {
 import {
   DollarSign, TrendingUp, TrendingDown, ShoppingCart,
   AlertTriangle, RefreshCw, Database, Sparkles, PlusCircle,
-  FileSpreadsheet, ArrowRight, ArrowUpRight, Flame, Layers, Share2
+  FileSpreadsheet, ArrowRight, ArrowUpRight, Flame, Layers, Share2,
+  Image as ImageIcon
 } from 'lucide-react'
 import api from '../services/api'
 import { useBusiness } from '../context/BusinessContext'
@@ -170,7 +171,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Quick Action Shortcuts Bar ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <button
           onClick={() => navigate('/app/data-input')}
           className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-primary-50/50 border border-slate-200/80 hover:border-primary-300 text-left transition-all shadow-xs group"
@@ -205,8 +206,21 @@ export default function Dashboard() {
             <Share2 size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-800 leading-tight">Social Studio</p>
-            <p className="text-[11px] text-slate-400 truncate">Posts &amp; Captions</p>
+            <p className="text-xs font-bold text-slate-800 leading-tight">Social Captions</p>
+            <p className="text-[11px] text-slate-400 truncate">Posts &amp; Hashtags</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate('/app/creative-studio')}
+          className="flex items-center gap-2.5 p-3 rounded-xl bg-white hover:bg-amber-50/50 border border-slate-200/80 hover:border-amber-300 text-left transition-all shadow-xs group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <ImageIcon size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-slate-800 leading-tight">Posters &amp; Reels</p>
+            <p className="text-[11px] text-slate-400 truncate">Image &amp; Video AI</p>
           </div>
         </button>
 
@@ -232,7 +246,7 @@ export default function Dashboard() {
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold leading-tight">Ask Assistant</p>
-            <p className="text-[11px] text-primary-100 truncate">Instant data answers</p>
+            <p className="text-[11px] text-primary-100 truncate">Instant answers</p>
           </div>
         </button>
       </div>

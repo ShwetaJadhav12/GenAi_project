@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Business, User
+from models import Business, User, Product
 from schemas import ChatMessage, WhatIfRequest, SocialContentRequest, ImageGenerationRequest, VideoGenerationRequest
 from routes.auth import get_current_user_dep
 from services import analytics as svc_analytics
@@ -133,6 +133,11 @@ def action_plan(
     }
 
 
+def _get_catalog(business_id: int, db: Session) -> list:
+    products = db.query(Product).filter(Product.business_id == business_id).all()
+    return [{"name": p.name, "category": p.category, "price": p.selling_price} for p in products]
+
+
 @router.post("/generate-social")
 def generate_social(
     business_id: int,
@@ -143,7 +148,16 @@ def generate_social(
     biz = _get_biz(business_id, current_user, db)
     context = svc_analytics.build_llm_context(db, business_id, 30)
     top_products = context.get("top_products", [])
-    result = svc_ai.generate_social_content(body.model_dump(), biz.business_name, biz.business_type, top_products)
+    catalog = _get_catalog(business_id, db)
+    result = svc_ai.generate_social_content(
+        body.model_dump(),
+        biz.business_name,
+        biz.business_type,
+        top_products,
+        catalog=catalog,
+        location=biz.location or "",
+        currency=biz.currency or "INR"
+    )
     return result
 
 
@@ -155,7 +169,15 @@ def generate_image(
     current_user: User = Depends(get_current_user_dep),
 ):
     biz = _get_biz(business_id, current_user, db)
-    result = svc_ai.generate_marketing_image(body.model_dump(), biz.business_name, biz.business_type)
+    catalog = _get_catalog(business_id, db)
+    result = svc_ai.generate_marketing_image(
+        body.model_dump(),
+        biz.business_name,
+        biz.business_type,
+        catalog=catalog,
+        location=biz.location or "",
+        currency=biz.currency or "INR"
+    )
     return result
 
 
@@ -167,7 +189,15 @@ def generate_video(
     current_user: User = Depends(get_current_user_dep),
 ):
     biz = _get_biz(business_id, current_user, db)
-    result = svc_ai.generate_marketing_video(body.model_dump(), biz.business_name, biz.business_type)
+    catalog = _get_catalog(business_id, db)
+    result = svc_ai.generate_marketing_video(
+        body.model_dump(),
+        biz.business_name,
+        biz.business_type,
+        catalog=catalog,
+        location=biz.location or "",
+        currency=biz.currency or "INR"
+    )
     return result
 
 
