@@ -202,6 +202,7 @@ def generate_video(
 
 
 @router.post("/campaign-planner")
+@router.post("/generate-campaign-plan")
 def campaign_planner(
     business_id: int,
     body: CampaignPlannerRequest,
