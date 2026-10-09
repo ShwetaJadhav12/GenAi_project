@@ -4,7 +4,8 @@ import {
   LayoutDashboard, Upload, ArrowLeftRight, Package,
   Receipt, Sparkles, TrendingUp, FlaskConical,
   MessageSquare, FileText, Settings, Store, X,
-  ChevronRight, CheckCircle2, ShieldCheck, ChevronDown, Share2, Calendar
+  ChevronRight, CheckCircle2, ShieldCheck, ChevronDown, Share2,
+  Image as ImageIcon, Calendar
 } from 'lucide-react'
 import { useBusiness } from '../context/BusinessContext'
 
@@ -22,10 +23,11 @@ const NAV_GROUPS = [
   {
     title: 'AI Intelligence',
     items: [
-      { to: '/app/forecast',          icon: TrendingUp,      label: 'Sales Forecast' },
       { to: '/app/ai-insights',       icon: Sparkles,        label: 'AI Insights', badge: 'AI' },
-      { to: '/app/campaign-planner', icon: Calendar,       label: 'AI Campaign Planner', badge: 'New' },
-      { to: '/app/social-generator',  icon: Share2,          label: 'Social Content Studio' },
+      { to: '/app/campaign-planner',  icon: Calendar,        label: 'AI Campaign Planner', badge: 'New' },
+      { to: '/app/social-generator',  icon: Share2,          label: 'Social Content Studio', badge: 'Captions' },
+      { to: '/app/creative-studio',   icon: ImageIcon,       label: 'AI Poster & Reel Studio', badge: 'Media' },
+      { to: '/app/forecast',          icon: TrendingUp,      label: 'Sales Forecast' },
       { to: '/app/whatif',            icon: FlaskConical,    label: 'What-If Simulator' },
       { to: '/app/ask-ai',            icon: MessageSquare,   label: 'Ask Assistant' },
     ]

@@ -523,7 +523,7 @@ How is your organization approaching customer retention this quarter? Looking fo
     }
 
 
-def generate_social_content(req: dict, biz_name: str, biz_type: str, top_products: list = None) -> dict:
+def generate_social_content(req: dict, biz_name: str, biz_type: str, top_products: list = None, catalog: list = None, location: str = "", currency: str = "INR") -> dict:
     """
     Generate platform-specific social media captions, CTAs, ad copy, and hashtags
     using Gemini / OpenAI, falling back to rich demo mode.
@@ -531,13 +531,16 @@ def generate_social_content(req: dict, biz_name: str, biz_type: str, top_product
     if DEMO_MODE:
         return _demo_social_content(req, biz_name, biz_type, top_products)
 
-    product = req.get("product_or_topic") or (top_products[0]["product_name"] if top_products else "Featured Store Offering")
-    audience = req.get("target_audience") or "Local customers and regulars"
-    goal = req.get("marketing_goal") or "Boost sales and engagement"
-    tone = req.get("tone") or "Engaging, Authentic & Persuasive"
-    offer = req.get("offer_details") or "Special promotional pricing available now"
-    platform = req.get("platform", "all")
-    notes = req.get("additional_notes", "")
+    catalog_names = [p["name"] for p in (catalog or []) if isinstance(p, dict) and p.get("name")]
+    default_product = catalog_names[0] if catalog_names else (top_products[0]["product_name"] if top_products else "Featured Store Offering")
+    product = (req.get("product_or_topic") or "").strip() or default_product
+    audience = (req.get("target_audience") or "").strip() or f"Local customers and residents in {location or 'the neighbourhood'}"
+    goal = (req.get("marketing_goal") or "").strip() or "Boost store sales and customer engagement"
+    tone = (req.get("tone") or "").strip() or "Engaging, Authentic & Persuasive"
+    offer = (req.get("offer_details") or "").strip() or "Special promotional pricing available now"
+    platform = req.get("platform") or "all"
+    notes = (req.get("additional_notes") or "").strip()
+    inventory_summary = ", ".join(catalog_names[:6]) if catalog_names else "Fresh signature products"
 
     prompt = f"""You are an elite commercial copywriter and social media marketing strategist for small-to-medium businesses.
 Create high-converting, platform-tailored social media marketing copy for the following business:
@@ -545,13 +548,19 @@ Create high-converting, platform-tailored social media marketing copy for the fo
 BUSINESS INFORMATION:
 - Name: {biz_name}
 - Industry/Type: {biz_type}
-- Product or Focal Topic: {product}
+- Location: {location or 'Local Market'}
+- Store Products in Catalog: {inventory_summary}
+- Product or Focal Topic for this Campaign: {product}
 - Target Audience: {audience}
 - Primary Marketing Goal: {goal}
 - Brand Voice / Tone: {tone}
 - Special Offer / Promotion: {offer}
 - Requested Platform Scope: {platform}
 - Additional Merchant Notes: {notes}
+
+GROUNDING REQUIREMENT:
+All copy, hooks, and hashtags MUST be authentically tailored to a real {biz_type} business ({biz_name}) operating in {location or 'the local area'}. Mention authentic product aspects of {product}.
+
 
 INSTRUCTIONS:
 Generate tailored content formatted specifically for:
@@ -646,29 +655,58 @@ _STYLE_ENHANCERS = {
 }
 
 _STOCK_PREVIEWS = {
-    "food": [
-        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80",
-    ],
     "fashion": [
         "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80",
     ],
-    "tech": [
-        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=1200&q=80",
+    "bakery": [
+        "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "grocery": [
+        "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "restaurant": [
+        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=80",
     ],
     "coffee": [
         "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1200&q=80",
     ],
+    "jewelry": [
+        "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "beauty": [
+        "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1560750588-73207b1ef5b8?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "tech": [
+        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "fitness": [
+        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "home": [
+        "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1200&q=80",
+    ],
     "default": [
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=1200&q=80",
     ]
 }
@@ -676,40 +714,92 @@ _STOCK_PREVIEWS = {
 
 def _pick_stock_image(query: str, index: int = 0) -> str:
     q = query.lower()
-    if any(k in q for k in ["food", "restaurant", "cafe", "pizza", "burger", "meal", "cake", "bakery", "snack"]):
-        category = "food"
-    elif any(k in q for k in ["fashion", "cloth", "dress", "shirt", "shoe", "wear", "jewelry", "beauty"]):
+    if any(k in q for k in ["fashion", "cloth", "dress", "shirt", "pant", "shoe", "wear", "apparel", "saree", "kurti", "jeans", "boutique", "suit", "garment", "textile", "handmade"]):
         category = "fashion"
-    elif any(k in q for k in ["tech", "gadget", "phone", "headphone", "audio", "laptop", "smart", "device"]):
-        category = "tech"
-    elif any(k in q for k in ["coffee", "tea", "espresso", "latte", "brew"]):
+    elif any(k in q for k in ["bakery", "bake", "bread", "cake", "pastry", "cookie", "sourdough", "croissant", "donut", "dessert", "sweet"]):
+        category = "bakery"
+    elif any(k in q for k in ["grocery", "groceries", "kirana", "supermarket", "provision", "vegetable", "fruit", "rice", "dal", "flour", "oil", "organic", "spice", "grain", "staple"]):
+        category = "grocery"
+    elif any(k in q for k in ["cafe", "coffee", "tea", "espresso", "latte", "brew", "cappuccino", "chai"]):
         category = "coffee"
+    elif any(k in q for k in ["restaurant", "dining", "dish", "meal", "kitchen", "thali", "biryani", "pizza", "burger", "chef", "hotel", "dine", "eatery"]):
+        category = "restaurant"
+    elif any(k in q for k in ["jewelry", "jewel", "gold", "silver", "diamond", "ring", "necklace", "bangle", "earring", "ornament", "gem"]):
+        category = "jewelry"
+    elif any(k in q for k in ["beauty", "salon", "spa", "cosmetic", "skincare", "hair", "makeup", "lotion", "perfume", "parlour"]):
+        category = "beauty"
+    elif any(k in q for k in ["tech", "electronic", "mobile", "phone", "gadget", "headphone", "audio", "laptop", "computer", "tv", "appliance"]):
+        category = "tech"
+    elif any(k in q for k in ["gym", "fitness", "workout", "sport", "yoga", "supplement", "protein"]):
+        category = "fitness"
+    elif any(k in q for k in ["home", "furniture", "decor", "curtain", "bedsheet", "kitchenware", "utensil", "sofa", "interior"]):
+        category = "home"
     else:
         category = "default"
-    images = _STOCK_PREVIEWS[category]
+    images = _STOCK_PREVIEWS.get(category, _STOCK_PREVIEWS["default"])
     return images[index % len(images)]
 
 
-def generate_marketing_image(req: dict, biz_name: str, biz_type: str) -> dict:
+def generate_marketing_image(req: dict, biz_name: str, biz_type: str, catalog: list = None, location: str = "", currency: str = "INR") -> dict:
     """
     Generates promotional visual imagery using Google GenAI (Imagen 3 / 4) or
     a commercial intelligent fallback studio when offline or on quota limits.
+    Strictly grounded in user business type, catalog, and location.
     """
-    user_prompt = req.get("prompt", "").strip() or f"Special promotional offer for {biz_name}"
-    product_name = req.get("product_name", "").strip()
-    style_key = req.get("style", "photorealistic")
-    aspect_ratio = req.get("aspect_ratio", "1:1")
-    headline = req.get("text_headline", "").strip() or f"Discover {product_name or biz_name}"
-    discount_tag = req.get("discount_tag", "").strip() or "Special Offer"
-    color_theme = req.get("color_theme", "").strip()
+    catalog_names = [p["name"] for p in (catalog or []) if isinstance(p, dict) and p.get("name")]
+    default_product = catalog_names[0] if catalog_names else ""
+    product_name = (req.get("product_name") or "").strip() or default_product
+
+    user_prompt = (req.get("prompt") or "").strip() or f"Special promotional offer for {product_name or biz_name}"
+    style_key = req.get("style") or "photorealistic"
+    aspect_ratio = req.get("aspect_ratio") or "1:1"
+
+    # Business & Product & Theme specific headline generation
+    if not (req.get("text_headline") or "").strip():
+        bt = (biz_type or "").lower()
+        pr = (user_prompt or "").lower()
+        pn = product_name or ""
+
+        if any(k in pr for k in ["festival", "diwali", "eid", "christmas", "celebrat", "holiday"]):
+            headline = f"Festive Celebration with {pn or biz_name}"
+        elif any(k in pr for k in ["weekend", "flash sale", "clearance", "discount", "mega sale"]):
+            headline = f"Weekend Flash Sale on {pn or 'All Collections'}"
+        elif any(k in pr for k in ["new arrival", "launch", "latest", "trend", "season"]):
+            headline = f"New Season Drop: {pn or 'Latest Arrivals'}"
+        elif any(k in pr for k in ["bestseller", "favorite", "top rated"]):
+            headline = f"Rated #1 Customer Favorite: {pn or biz_name}"
+        elif any(k in bt for k in ["bakery", "cake", "sweet"]):
+            headline = f"Fresh From Our Oven: {pn or 'Daily Bakes'}"
+        elif any(k in bt for k in ["restaurant", "cafe", "food"]):
+            headline = f"Chef's Special: {pn or 'Signature Dishes'}"
+        elif any(k in bt for k in ["grocery", "supermarket", "kirana"]):
+            headline = f"Daily Fresh Deals on {pn or 'Groceries'}"
+        elif any(k in bt for k in ["fashion", "clothing", "boutique"]):
+            headline = f"Trending Style: {pn or 'New Collection'}"
+        elif any(k in bt for k in ["jewelry", "gold"]):
+            headline = f"Pure Elegance: {pn or 'Fine Jewelry'}"
+        elif any(k in bt for k in ["tech", "electronic"]):
+            headline = f"Smart Tech Deals on {pn or 'Gadgets'}"
+        else:
+            headline = f"Exclusive Special on {pn or biz_name}"
+    else:
+        headline = req.get("text_headline").strip()
+
+    sym = "₹" if currency == "INR" else "$"
+    discount_tag = (req.get("discount_tag") or "").strip() or f"Special Offer"
+    color_theme = (req.get("color_theme") or "").strip()
 
     enhancement = _STYLE_ENHANCERS.get(style_key, _STYLE_ENHANCERS["photorealistic"])
-    subject = f"Commercial product shot of {product_name}" if product_name else f"Commercial hero advertisement for {biz_name} ({biz_type})"
+    loc_str = f" in {location}" if location else ""
+    catalog_str = f"Store catalog includes: {', '.join(catalog_names[:5])}." if catalog_names else ""
+
+    subject = f"Commercial product shot of {product_name} from {biz_name} ({biz_type}{loc_str})" if product_name else f"Commercial hero advertising poster for {biz_name} ({biz_type}{loc_str})"
     full_prompt = (
-        f"{subject}. {user_prompt}. "
-        f"{enhancement} "
+        f"{subject}. {user_prompt}. {catalog_str} "
+        f"Aesthetic style: {enhancement} "
+        f"The visual MUST be specifically and accurately themed for a real {biz_type} business. "
         f"{f'Color palette accent: {color_theme}. ' if color_theme else ''}"
-        f"Masterpiece, award-winning advertising banner, clean professional aesthetics."
+        f"Masterpiece, award-winning commercial advertising photography, flawless composition, high detail."
     )
 
     image_url = None
@@ -780,18 +870,23 @@ def generate_marketing_image(req: dict, biz_name: str, biz_type: str) -> dict:
     }
 
 
-def generate_marketing_video(req: dict, biz_name: str, biz_type: str) -> dict:
+def generate_marketing_video(req: dict, biz_name: str, biz_type: str, catalog: list = None, location: str = "", currency: str = "INR") -> dict:
     """
     Generates a high-converting scene-by-scene commercial video storyboard and script
     tailored for Instagram Reels, TikTok, YouTube Shorts, and promotional ads.
+    Grounds scenes and voiceover in user's business industry, products, and location.
     """
-    user_prompt = req.get("prompt", "").strip() or f"Promote {biz_name}'s best-selling products and services"
-    product_name = req.get("product_name", "").strip()
-    video_type = req.get("video_type", "product_reel")
-    aspect_ratio = req.get("aspect_ratio", "9:16")
-    duration = int(req.get("duration_seconds", 15))
-    platform = req.get("target_platform", "instagram_reels")
-    tone = req.get("tone", "High-Energy & Trendy")
+    catalog_names = [p["name"] for p in (catalog or []) if isinstance(p, dict) and p.get("name")]
+    default_product = catalog_names[0] if catalog_names else "Signature Collection"
+    product_name = (req.get("product_name") or "").strip() or default_product
+    user_prompt = (req.get("prompt") or "").strip() or f"Promote {biz_name}'s best-selling products and special offers"
+    video_type = req.get("video_type") or "product_reel"
+    aspect_ratio = req.get("aspect_ratio") or "9:16"
+    duration = int(req.get("duration_seconds") or 15)
+    platform = req.get("target_platform") or "instagram_reels"
+    tone = req.get("tone") or "High-Energy & Trendy"
+    loc_str = f" in {location}" if location else ""
+    catalog_summary = ", ".join(catalog_names[:6]) if catalog_names else f"{biz_type} items"
 
     prompt = f"""You are an elite short-form video creative director and commercial advertising director for Instagram Reels, TikTok, and YouTube Shorts.
 Create a high-retention, high-converting video commercial storyboard and voiceover script for the following business:
@@ -799,13 +894,24 @@ Create a high-retention, high-converting video commercial storyboard and voiceov
 BUSINESS INFORMATION:
 - Name: {biz_name}
 - Industry/Type: {biz_type}
-- Focal Product: {product_name or 'Signature Offerings'}
+- Location: {location or 'Local Market'}
+- Store Products in Catalog: {catalog_summary}
+- Focal Product for this Video: {product_name}
 - Campaign Goal / User Prompt: {user_prompt}
 - Video Style / Type: {video_type}
 - Duration Target: {duration} seconds
 - Aspect Ratio: {aspect_ratio} (e.g. 9:16 vertical reel)
 - Target Platform: {platform}
 - Tone / Vibe: {tone}
+
+CRITICAL GROUNDING REQUIREMENTS:
+1. Every scene, visual description, camera movement, kinetic on-screen text, and voiceover line MUST strictly belong to a real {biz_type} business ({biz_name}) operating in {location or 'the local area'}.
+2. Feature {product_name} and related products authentically ({catalog_summary}).
+3. For food/bakery/restaurant, describe appetizing textures, fresh dough/ovens/ingredients, dining ambiance.
+4. For clothing/fashion, describe fabrics, trendy cuts, stylish wardrobe choices.
+5. For grocery/kirana, describe crisp farm produce, daily essentials, pantry staples, and neighborhood savings.
+6. For electronics/tech, describe modern gadget features, crisp displays, speed, durability.
+7. NEVER invent generic corporate offices or unrelated scenes. Keep it 100% true to {biz_name} ({biz_type}).
 
 INSTRUCTIONS:
 1. Divide the video into 3 to 5 fast-paced scenes matching the {duration} second duration.
@@ -851,101 +957,310 @@ JSON Structure:
 
     raw = _call_llm(prompt)
     if not raw:
-        return _demo_video_storyboard(req, biz_name, biz_type)
+        return _demo_video_storyboard(req, biz_name, biz_type, catalog=catalog, location=location, currency=currency)
 
     try:
         raw_clean = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
         data = json.loads(raw_clean)
-        # Attach preview image links to scenes
+        # Attach preview image links to scenes matching the actual business type
         search_key = f"{biz_type} {product_name}"
         for i, sc in enumerate(data.get("scenes", [])):
             sc["preview_image"] = _pick_stock_image(search_key, i)
         return data
     except Exception as e:
         logger.warning("Failed to parse LLM video storyboard response: %s. Using demo format.", e)
-        return _demo_video_storyboard(req, biz_name, biz_type)
+        return _demo_video_storyboard(req, biz_name, biz_type, catalog=catalog, location=location, currency=currency)
 
 
-def _demo_video_storyboard(req: dict, biz_name: str, biz_type: str) -> dict:
-    product = req.get("product_name") or "Signature Collection"
-    duration = int(req.get("duration_seconds", 15))
-    aspect_ratio = req.get("aspect_ratio", "9:16")
-    platform = req.get("target_platform", "instagram_reels")
+def _demo_video_storyboard(req: dict, biz_name: str, biz_type: str, catalog: list = None, location: str = "", currency: str = "INR") -> dict:
+    catalog_names = [p["name"] for p in (catalog or []) if isinstance(p, dict) and p.get("name")]
+    default_product = catalog_names[0] if catalog_names else "Signature Collection"
+    product = (req.get("product_name") or default_product)
+    duration = int(req.get("duration_seconds") or 15)
+    aspect_ratio = req.get("aspect_ratio") or "9:16"
+    platform = req.get("target_platform") or "instagram_reels"
     search_key = f"{biz_type} {product}"
+    loc_str = f" in {location}" if location else ""
+    bt = (biz_type or "").lower()
 
-    scenes = [
-        {
-            "scene_number": 1,
-            "duration": 3,
-            "phase": "Scroll-Stopping Hook",
-            "visual_description": f"Fast-paced dynamic macro zoom into {product} with cinematic lighting and steam/sparkles.",
-            "on_screen_text": f"Wait! Have you seen this at {biz_name}? 👀",
-            "voiceover": f"Stop scrolling! If you haven't checked out {biz_name} yet, you're missing out.",
-            "camera_motion": "Fast push-in with subtle lens flare",
-            "sound_fx": "Punchy bass drop + cinematic swoosh",
-            "preview_image": _pick_stock_image(search_key, 0),
-            "transition": "Whip pan right"
-        },
-        {
-            "scene_number": 2,
-            "duration": 4,
-            "phase": "Problem & Reveal",
-            "visual_description": f"Split comparison showing ordinary alternatives vs the premium quality of {product}.",
-            "on_screen_text": "Tired of settling for average? ⚡",
-            "voiceover": f"No more compromises. We brought together top-tier quality and unbeatable value.",
-            "camera_motion": "Smooth horizontal slider tracking across product",
-            "sound_fx": "Rhythmic high-hat build up",
-            "preview_image": _pick_stock_image(search_key, 1),
-            "transition": "Flash dissolve"
-        },
-        {
-            "scene_number": 3,
-            "duration": 5,
-            "phase": "Product Showcase",
-            "visual_description": f"Satisfying 360-degree orbit shot showcasing texture, craftsmanship, and vibrant details of {product}.",
-            "on_screen_text": f"Crafted with perfection 🌟 Top rated by locals",
-            "voiceover": f"From premium ingredients to handcrafted precision, every single detail is made for you.",
-            "camera_motion": "Slow motion 60fps rotating orbit",
-            "sound_fx": "Subtle bell chime & uplifting melodic drop",
-            "preview_image": _pick_stock_image(search_key, 2),
-            "transition": "Zoom out"
-        },
-        {
-            "scene_number": 4,
-            "duration": 3,
-            "phase": "Irresistible Call to Action",
-            "visual_description": f"Bold branded end-screen featuring {biz_name} logo, address/website, and animated promo tag.",
-            "on_screen_text": "🔥 Limited Time Offer! Tap link in bio to order now",
-            "voiceover": f"Visit {biz_name} today or tap the link in bio before this offer ends!",
-            "camera_motion": "Static punchy hero lock-off",
-            "sound_fx": "Crisp digital chime + applause tap",
-            "preview_image": _pick_stock_image(search_key, 0),
-            "transition": "Fade to brand logo"
-        }
-    ]
+    if any(k in bt for k in ["bakery", "cake", "sweet", "pastry"]):
+        scenes = [
+            {
+                "scene_number": 1,
+                "duration": 3,
+                "phase": "Scroll-Stopping Hook",
+                "visual_description": f"Golden oven doors open revealing warm, rising {product} with gentle steam and buttery glaze.",
+                "on_screen_text": f"Oven fresh at {biz_name}! 🥐✨",
+                "voiceover": f"Stop scrolling! Can you smell the fresh butter and warm crust from {biz_name}?",
+                "camera_motion": "Fast push-in with macro lens depth of field",
+                "sound_fx": "Crisp pastry crackle + gentle oven chime",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Whip pan right"
+            },
+            {
+                "scene_number": 2,
+                "duration": 4,
+                "phase": "Craftsmanship & Quality",
+                "visual_description": f"Baker gently dusting powdered sugar and slicing into artisan {product} showing soft airy layers.",
+                "on_screen_text": "Baked fresh every single morning 🍞",
+                "voiceover": "No preservatives, no shortcuts. Just 100% handmade passion baked fresh before sunrise.",
+                "camera_motion": "Smooth slow-motion 60fps tracking shot",
+                "sound_fx": "Rhythmic upbeat lo-fi acoustic beat",
+                "preview_image": _pick_stock_image(search_key, 1),
+                "transition": "Flash dissolve"
+            },
+            {
+                "scene_number": 3,
+                "duration": 5,
+                "phase": "Hero Product Showcase",
+                "visual_description": f"Rotating showcase table displaying {product} alongside gourmet pastries and hot espresso.",
+                "on_screen_text": f"Your daily treat awaits at {biz_name} ☕",
+                "voiceover": f"Whether it's your morning breakfast run or weekend celebration, {product} is made to bring pure joy.",
+                "camera_motion": "360-degree smooth orbit",
+                "sound_fx": "Warm bell chime and uplifting melody",
+                "preview_image": _pick_stock_image(search_key, 2),
+                "transition": "Zoom out"
+            },
+            {
+                "scene_number": 4,
+                "duration": 3,
+                "phase": "Call to Action",
+                "visual_description": f"Branded end-card with {biz_name} bakery logo{loc_str} and fresh batch timer.",
+                "on_screen_text": f"🔥 Visit {biz_name}{loc_str} today!",
+                "voiceover": f"Drop by {biz_name}{loc_str} today before today's fresh batch sells out!",
+                "camera_motion": "Hero center lock-off",
+                "sound_fx": "Crisp register chime + happy tap",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Fade to brand logo"
+            }
+        ]
+    elif any(k in bt for k in ["restaurant", "food", "cafe", "dining"]):
+        scenes = [
+            {
+                "scene_number": 1,
+                "duration": 3,
+                "phase": "Flavor Hook",
+                "visual_description": f"Chef tossing sizzling {product} in a flaming wok with aromatic spices rising in golden light.",
+                "on_screen_text": f"Craving something unforgettable? 🍽️🔥",
+                "voiceover": f"Stop scrolling if you love great food! Have you tried the famous {product} at {biz_name}?",
+                "camera_motion": "Dynamic snap-zoom into the sizzling pan",
+                "sound_fx": "Sizzle drop + bass whoosh",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Whip pan"
+            },
+            {
+                "scene_number": 2,
+                "duration": 4,
+                "phase": "Authentic Ingredients",
+                "visual_description": f"Fresh herbs, handpicked spices, and rich sauces being expertly drizzled onto {product}.",
+                "on_screen_text": "Farm-fresh ingredients • Secret family recipe",
+                "voiceover": "We believe great taste starts with real, honest ingredients. Cooked to mouthwatering perfection.",
+                "camera_motion": "Top-down macro slider",
+                "sound_fx": "Upbeat culinary beat drop",
+                "preview_image": _pick_stock_image(search_key, 1),
+                "transition": "Smooth dissolve"
+            },
+            {
+                "scene_number": 3,
+                "duration": 5,
+                "phase": "Dining Experience",
+                "visual_description": f"Beautifully plated table in cozy warm ambient lighting surrounded by happy dining guests.",
+                "on_screen_text": f"Best rated comfort dining in {location or 'town'} ⭐⭐⭐⭐⭐",
+                "voiceover": f"Every bite of our signature {product} delivers rich, authentic flavors that keep customers coming back.",
+                "camera_motion": "Slow orbit tracking table setting",
+                "sound_fx": "Uplifting crescendo melody",
+                "preview_image": _pick_stock_image(search_key, 2),
+                "transition": "Zoom in"
+            },
+            {
+                "scene_number": 4,
+                "duration": 3,
+                "phase": "Call to Action",
+                "visual_description": f"End card showing {biz_name} storefront, table reservation link, and takeout promo tag.",
+                "on_screen_text": "Reserve your table or order now! 🛵",
+                "voiceover": f"Dine in or order from {biz_name}{loc_str} today. Your table is ready!",
+                "camera_motion": "Static punchy hero lock-off",
+                "sound_fx": "Digital chime",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Fade to brand logo"
+            }
+        ]
+    elif any(k in bt for k in ["grocery", "kirana", "supermarket", "provision"]):
+        scenes = [
+            {
+                "scene_number": 1,
+                "duration": 3,
+                "phase": "Savings Hook",
+                "visual_description": f"Bright supermarket aisles filled with colorful fresh produce and neatly organized {product}.",
+                "on_screen_text": "Why pay more for daily groceries? 🛒",
+                "voiceover": f"Wait! Stop overpaying for your monthly provisions. Check out what's in store at {biz_name}!",
+                "camera_motion": "Fast push-in down store aisle",
+                "sound_fx": "Cash register ding + bright chime",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Whip pan"
+            },
+            {
+                "scene_number": 2,
+                "duration": 4,
+                "phase": "Freshness & Quality",
+                "visual_description": f"Macro shot of crisp farm-fresh produce and premium branded staples being packed with care.",
+                "on_screen_text": "100% Farm-Fresh Quality Guaranteed 🌿",
+                "voiceover": f"From premium {product} to your daily kitchen essentials, we guarantee top quality at honest prices.",
+                "camera_motion": "Horizontal slider across fresh displays",
+                "sound_fx": "Snappy percussion build up",
+                "preview_image": _pick_stock_image(search_key, 1),
+                "transition": "Flash dissolve"
+            },
+            {
+                "scene_number": 3,
+                "duration": 5,
+                "phase": "Mega Family Savings",
+                "visual_description": f"A full grocery basket packed with essentials, displaying special discount vouchers and smiles.",
+                "on_screen_text": f"Big savings on every bill at {biz_name} 💰",
+                "voiceover": "Enjoy wholesale prices, seasonal discounts, and friendly neighbourhood service every day.",
+                "camera_motion": "Slow tilt-up shot of packed shopping basket",
+                "sound_fx": "Uplifting warm synth drop",
+                "preview_image": _pick_stock_image(search_key, 2),
+                "transition": "Zoom out"
+            },
+            {
+                "scene_number": 4,
+                "duration": 3,
+                "phase": "Call to Action",
+                "visual_description": f"Store address {biz_name}{loc_str} with free home delivery banner.",
+                "on_screen_text": "Shop in-store or WhatsApp your list today! 🚚",
+                "voiceover": f"Visit {biz_name}{loc_str} today or WhatsApp your order for lightning fast delivery!",
+                "camera_motion": "Static branded lock-off",
+                "sound_fx": "Positive bell ding",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Fade to brand logo"
+            }
+        ]
+    elif any(k in bt for k in ["fashion", "clothing", "boutique", "apparel"]):
+        scenes = [
+            {
+                "scene_number": 1,
+                "duration": 3,
+                "phase": "Style Hook",
+                "visual_description": f"Stylish model stepping forward wearing elegant {product} in chic modern studio lighting.",
+                "on_screen_text": f"New Season Drop at {biz_name}! ✨👗",
+                "voiceover": f"Looking for that head-turning look this weekend? {biz_name} just dropped brand new arrivals!",
+                "camera_motion": "Fast push-in with lens flare",
+                "sound_fx": "Fashion runway bass drop",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Whip pan"
+            },
+            {
+                "scene_number": 2,
+                "duration": 4,
+                "phase": "Fabric & Fit",
+                "visual_description": f"Macro camera gliding over luxurious fabric textures, fine stitching, and premium finishing of {product}.",
+                "on_screen_text": "Premium Fabrics • Flattering Silhouettes",
+                "voiceover": "Bespoke tailoring, breathable fabrics, and trending colors crafted to keep you confident all day.",
+                "camera_motion": "Slow macro tracking across seams",
+                "sound_fx": "Rhythmic modern beat",
+                "preview_image": _pick_stock_image(search_key, 1),
+                "transition": "Flash cut"
+            },
+            {
+                "scene_number": 3,
+                "duration": 5,
+                "phase": "Collection Showcase",
+                "visual_description": f"Dynamic fashion montage showing different styling options for {product} from day to evening.",
+                "on_screen_text": f"Limited edition styles • Exclusively at {biz_name}",
+                "voiceover": f"From casual elegance to festive glamour, find your unique personal style with {biz_name}.",
+                "camera_motion": "Fast dynamic gimbal cuts",
+                "sound_fx": "Deep synth drop and chime",
+                "preview_image": _pick_stock_image(search_key, 2),
+                "transition": "Zoom in"
+            },
+            {
+                "scene_number": 4,
+                "duration": 3,
+                "phase": "Call to Action",
+                "visual_description": f"End frame with {biz_name} boutique logo, discount badge, and shop link.",
+                "on_screen_text": "Shop new arrivals in-store or tap link in bio! 🛍️",
+                "voiceover": f"Visit {biz_name}{loc_str} today or tap link in bio before sizes sell out!",
+                "camera_motion": "Hero static lock-off",
+                "sound_fx": "Crisp notification chime",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Fade to brand logo"
+            }
+        ]
+    else:
+        scenes = [
+            {
+                "scene_number": 1,
+                "duration": 3,
+                "phase": "Scroll-Stopping Hook",
+                "visual_description": f"Dynamic macro zoom into {product} with cinematic lighting and reflections.",
+                "on_screen_text": f"Discover what's new at {biz_name}! 👀",
+                "voiceover": f"Stop scrolling! If you haven't checked out {biz_name}{loc_str} yet, you're missing out.",
+                "camera_motion": "Fast push-in with subtle lens flare",
+                "sound_fx": "Punchy bass drop + cinematic swoosh",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Whip pan right"
+            },
+            {
+                "scene_number": 2,
+                "duration": 4,
+                "phase": "Problem & Reveal",
+                "visual_description": f"Split comparison showing ordinary alternatives vs the premium quality of {product}.",
+                "on_screen_text": "Tired of settling for average? ⚡",
+                "voiceover": f"No more compromises. We brought together top-tier quality and unbeatable value with {product}.",
+                "camera_motion": "Smooth horizontal slider tracking across product",
+                "sound_fx": "Rhythmic high-hat build up",
+                "preview_image": _pick_stock_image(search_key, 1),
+                "transition": "Flash dissolve"
+            },
+            {
+                "scene_number": 3,
+                "duration": 5,
+                "phase": "Product Showcase",
+                "visual_description": f"Satisfying 360-degree orbit shot showcasing texture and craftsmanship of {product}.",
+                "on_screen_text": f"Crafted with perfection 🌟 Top rated by locals",
+                "voiceover": f"Every single detail is designed for your satisfaction, backed by trusted local service.",
+                "camera_motion": "Slow motion 60fps rotating orbit",
+                "sound_fx": "Subtle bell chime & uplifting melodic drop",
+                "preview_image": _pick_stock_image(search_key, 2),
+                "transition": "Zoom out"
+            },
+            {
+                "scene_number": 4,
+                "duration": 3,
+                "phase": "Irresistible Call to Action",
+                "visual_description": f"Bold branded end-screen featuring {biz_name} logo{loc_str} and promo tag.",
+                "on_screen_text": "🔥 Limited Time Offer! Visit us today",
+                "voiceover": f"Visit {biz_name}{loc_str} today or tap the link in bio to claim your special offer!",
+                "camera_motion": "Static punchy hero lock-off",
+                "sound_fx": "Crisp digital chime + applause tap",
+                "preview_image": _pick_stock_image(search_key, 0),
+                "transition": "Fade to brand logo"
+            }
+        ]
 
     return {
-        "title": f"{biz_name} - {product} Viral Promo",
-        "concept": f"High-energy viral commercial showcasing {product} with fast visual hooks and customer-centric value propositions.",
-        "hook_headline": f"The #1 reason everyone is obsessed with {biz_name}!",
+        "title": f"{biz_name} - {product} Promo Reel",
+        "concept": f"Authentic commercial showcasing {product} tailored specifically for {biz_name}'s {biz_type} customers{loc_str}.",
+        "hook_headline": f"Why everyone in {location or 'town'} is talking about {biz_name}!",
         "duration_seconds": duration,
         "aspect_ratio": aspect_ratio,
         "platform": platform,
         "music_track": {
-            "title": "Neon Rush (Lo-Fi Trap Pop)",
-            "vibe": "Energetic, driving bass, crisp modern percussion",
-            "bpm": 128
+            "title": "Neon Rush (Lo-Fi Modern Beat)",
+            "vibe": "Energetic, modern beat, warm local rhythm",
+            "bpm": 124
         },
-        "full_voiceover_script": f"Stop scrolling! If you haven't checked out {biz_name} yet, you're missing out. No more compromises. We brought together top-tier quality and unbeatable value with {product}. From premium ingredients to handcrafted precision, every single detail is made for you. Visit {biz_name} today or tap the link in bio before this offer ends!",
+        "full_voiceover_script": " ".join([sc["voiceover"] for sc in scenes]),
         "scenes": scenes,
-        "veo_generation_prompt": f"A cinematic commercial 9:16 vertical video for {biz_name} featuring {product}. Fast camera moves, warm studio lighting, 4k ultra-detailed commercial grade aesthetic.",
+        "veo_generation_prompt": f"A cinematic commercial 9:16 vertical video for {biz_name}, a {biz_type} business{loc_str}, featuring {product}. Fast camera moves, warm authentic lighting, commercial grade aesthetic.",
         "hashtags": [
             f"#{biz_name.replace(' ', '').lower()}",
+            f"#{biz_type.replace(' ', '').lower()}",
+            f"#{location.replace(' ', '').lower()}" if location else "#shoplocal",
             "#reelsviral",
             "#trendingnow",
-            "#smallbusinesscheck",
-            "#musttry",
-            "#supportlocal"
+            "#smallbusinesscheck"
         ]
     }
 
@@ -967,6 +1282,3 @@ def generate_campaign_planner(db, business_id: int, req: dict, biz_name: str, bi
     )
     result["data_analysis_summary"] = data_analysis
     return result
-
-
-

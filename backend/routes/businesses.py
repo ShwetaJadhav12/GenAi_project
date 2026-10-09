@@ -32,6 +32,15 @@ def create_business(
     db.add(biz)
     db.commit()
     db.refresh(biz)
+
+    # Automatically seed starter products so AI Creative Studio & Social Generator are immediately grounded
+    bt = (biz.business_type or "").lower()
+    if any(k in bt for k in ["grocery", "supermarket", "kirana", "provision"]):
+        load_grocery_demo(db, biz.id)
+    elif any(k in bt for k in ["clothing", "fashion", "dress", "boutique", "apparel", "tailor"]):
+        load_clothing_demo(db, biz.id)
+
+    db.refresh(biz)
     return biz
 
 
