@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Business, User, Product
-from schemas import ChatMessage, WhatIfRequest, SocialContentRequest, ImageGenerationRequest, VideoGenerationRequest
+from schemas import ChatMessage, WhatIfRequest, SocialContentRequest, ImageGenerationRequest, VideoGenerationRequest, CampaignPlannerRequest
 from routes.auth import get_current_user_dep
 from services import analytics as svc_analytics
 from services import ai_service as svc_ai
@@ -196,6 +196,25 @@ def generate_video(
         biz.business_type,
         catalog=catalog,
         location=biz.location or "",
+        currency=biz.currency or "INR"
+    )
+    return result
+
+
+@router.post("/campaign-planner")
+def campaign_planner(
+    business_id: int,
+    body: CampaignPlannerRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_dep),
+):
+    biz = _get_biz(business_id, current_user, db)
+    result = svc_ai.generate_campaign_planner(
+        db,
+        business_id,
+        body.model_dump(),
+        biz.business_name,
+        biz.business_type,
         currency=biz.currency or "INR"
     )
     return result
